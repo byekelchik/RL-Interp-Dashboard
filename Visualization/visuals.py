@@ -2,13 +2,15 @@
 # !pip install yfinance
 # !pip install --upgrade google-cloud-bigquery
 # !pip install pandas-gbq -U
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
-import structure_data
-from structure_data import get_data, sys, os, pd
+
+# import structure_data
+# from structure_data import get_data, sys, os, pd
 
 # Visualizations
   # Parameters:
@@ -16,44 +18,22 @@ from structure_data import get_data, sys, os, pd
   # 2.   Dataset name(COVID, 2018)
   # 3.   Train or Test data
 
-
-# def confusion_matrix(): # compare two datasets at a time
-#   df = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '1' order by date")
-#   # generate random values for truth
-#   truth = pd.DataFrame(np.random.randint(0,3,size=(len(df)+4)), columns=['Truth'])
-#   df['Truth'] = truth
-#   buyVal = []
-#   buy = df[['Choice', 'Truth']][df['Choice'] == '1']
-#   sell = df[['Choice', 'Truth']][df['Choice'] == '2']
-#   hold = df[['Choice', 'Truth']][df['Choice'] == '0']
-#   # buy = buy['Choice'][buy['Choice'].astype(int) == buy['Truth'].astype(int)].count()
-#   # sell = sell['Choice'][sell['Choice'].astype(int) == sell['Truth'].astype(int)].count()
-#   # hold = hold['Choice'][hold['Choice'].astype(int) == hold['Truth'].astype(int)].count()
-
-#   # fig = go.Figure(data=go.Heatmap(labels=dict(x="What Should have Happened", y="What Algo DId", color="Viridis"),
-#   #                  z=[[int(buy['Choice'][buy['Choice'].astype(int) == buy['Truth'].astype(int)].count()), int(buy['Choice'][buy['Choice'].astype(int) == buy[buy['Truth'] == '2'].astype(int)].count()), int(buy['Choice'][buy['Choice'].astype(int) == buy[buy['Truth'] == '0'].astype(int)].count())],
-#   #                     [sell['Choice'][sell['Choice'].astype(int) == sell[sell['Truth']=='1'].astype(int)].count(), sell['Choice'][sell['Choice'].astype(int) == sell['Truth'].astype(int)].count(), sell['Choice'][sell['Choice'].astype(int) == sell[sell['Truth']=='0'].astype(int)].count()],
-#   #                     [hold['Choice'][hold['Choice'].astype(int) == hold[hold['Truth']=='1'].astype(int)].count(), hold['Choice'][hold['Choice'].astype(int) == hold[hold['Truth']=='2'].astype(int)].count(), hold['Choice'][hold['Choice'].astype(int) == hold['Truth'].astype(int)].count()]],
-#   #                  x=['Buy', 'Sell', 'Hold'],
-#   #                  y=['Buy', 'Sell', 'Hold'],
-#   #                  hoverongaps = False))
-#   # fig.show()
-#   print(buy['Choice'][buy['Choice'].astype(int) == buy['Truth'].astype(int)].count().iloc[0])
-
-###USE PLOTLY###
-
 # Average state(Price, Volume) table
 # INPUT: specific episodes, name of dataset being used(COVID, 2018), train or test data
-def average_state_table(episodes, dataset_name, train_test):
+def average_state_table(episodes, dataset_name, data):
 
-  df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by date")
+  df = data
 
+  fig_output = []
+  
   for episode in episodes:
+    # restrcuture data by choice and episode
     buy = df[(df['Choice'] == '1') & (df['Episode'] == str(episode))]
     sell = df[(df['Choice'] == '2') & (df['Episode'] == str(episode))]
     hold = df[(df['Choice'] == '0') & (df['Episode'] == str(episode))]
     bsh = pd.concat([buy.median().round(2).astype(str) + '%', sell.median().round(2).astype(str) + '%', hold.median().round(2).astype(str) + '%'])
 
+    # create plotly table
     fig = go.Figure(data=[go.Table(columnwidth = 1,
       header=dict(height = 38, values=['Action', 'Price Delta', 'Volume Delta'],
                   fill_color='paleturquoise',
@@ -64,24 +44,33 @@ def average_state_table(episodes, dataset_name, train_test):
     ])
 
     fig.update_layout(
-    title="Episode "+str(episode)
+    title="Episode "+str(episode),
+    height=300
     )
 
-    fig.show()
-average_state_table([1, 2], '2018', 'Train')
+    # add to output list to send to dash
+    fig_output.append(fig)
+    
+  return fig_output
+
 # Average state(Price, Volume) graph
 # INPUT: specific episodes, name of dataset being used(COVID, 2018)
-def average_state_graph(episodes, dataset_name):
+def average_price_graph(episodes, dataset_name, data):
 
-  df = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
+  fig_output = []
+  df = data
+
   buy = pd.DataFrame(columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta', 'Adj Close'])
   sell = pd.DataFrame(columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta', 'Adj Close'])
   hold = pd.DataFrame(columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta', 'Adj Close'])
-  # plot a line for the specified number of episodes
+  
+  
   for episode in episodes:
     buy = buy.append(df[(df['Choice'] == '1') & (df['Episode'] == str(episode))].median(), ignore_index=True)
     sell = sell.append(df[(df['Choice'] == '2') & (df['Episode'] == str(episode))].median(), ignore_index=True)
     hold = hold.append(df[(df['Choice'] == '0') & (df['Episode'] == str(episode))].median(), ignore_index=True)
+
+  # plot a line for the specified number of episodes
   for state in ['Price', 'Volume']:
     fig = go.Figure(layout=go.Layout(
           title=go.layout.Title(text="Average Price State by Episode")
@@ -100,7 +89,9 @@ def average_state_graph(episodes, dataset_name):
     xaxis_title="Episode",
     yaxis_title="% Change"
     )
-    fig.show()
+    fig_output.append(fig)
+    
+  return fig_output
 
 # Helper function for heatmap visual
 def SetColor(x):
@@ -202,71 +193,77 @@ def qvalues_plot(episode):
     title="B/S/H Q-Values Over Time",
     xaxis_title="Trading Days",
     yaxis_title="Q-Values"
-)
+  )
   fig.show()
 
 """# Normality Tests for Visualization Data"""
 
 # Quantile-Quantile Plot
-def qq_plot():
-  df = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '6' order by date")
-  buy = df[df['Choice'] == '1']
-  sell = df[df['Choice'] == '2']
-  hold = df[df['Choice'] == '0']
-  qqplot_data = qqplot(sell['Price Delta'], line='s').gca().lines
-  fig = go.Figure()
+def qq_plot(episodes, dataset_name, train_test):
+  df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
+  output = []
+  for episode in episodes:
+    buy = df[(df['Choice'] == '1') & (df['Episode'] == str(episode))]
+    sell = df[(df['Choice'] == '2') & (df['Episode'] == str(episode))]
+    hold = df[(df['Choice'] == '0') & (df['Episode'] == str(episode))]
+    qqplot_data = qqplot(sell['Price Delta'], line='s').gca().lines
+    fig = go.Figure()
 
-  fig.add_trace({
-      'type': 'scatter',
-      'x': qqplot_data[0].get_xdata(),
-      'y': qqplot_data[0].get_ydata(),
-      'mode': 'markers',
-      'marker': {
-          'color': '#19d3f3'
-      }
-  })
+    fig.add_trace({
+        'type': 'scatter',
+        'x': qqplot_data[0].get_xdata(),
+        'y': qqplot_data[0].get_ydata(),
+        'mode': 'markers',
+        'marker': {
+            'color': '#19d3f3'
+        }
+    })
 
-  fig.add_trace({
-      'type': 'scatter',
-      'x': qqplot_data[1].get_xdata(),
-      'y': qqplot_data[1].get_ydata(),
-      'mode': 'lines',
-      'line': {
-          'color': '#636efa'
-      }
+    fig.add_trace({
+        'type': 'scatter',
+        'x': qqplot_data[1].get_xdata(),
+        'y': qqplot_data[1].get_ydata(),
+        'mode': 'lines',
+        'line': {
+            'color': '#636efa'
+        }
 
-  })
+    })
 
 
-  fig['layout'].update({
-      'title': 'Quantile-Quantile Plot',
-      'xaxis': {
-          'title': 'Theoretical Quantities',
-          'zeroline': False
-      },
-      'yaxis': {
-          'title': 'Sample Quantities'
-      },
-      'showlegend': False,
-      'width': 800,
-      'height': 700,
-  })
+    fig['layout'].update({
+        'title': 'Quantile-Quantile Plot',
+        'xaxis': {
+            'title': 'Theoretical Quantities',
+            'zeroline': False
+        },
+        'yaxis': {
+            'title': 'Sample Quantities'
+        },
+        'showlegend': False,
+        'width': 800,
+        'height': 700,
+    })
 
-  fig.show()
-
+    output.append(fig)
+  return output
 # Shapiro-Wilk Test
-def shapiro_wilk():
-  df = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '10' order by date")
-  buy = df[df['Choice'] == '1']
-  sell = df[df['Choice'] == '2']
-  hold = df[df['Choice'] == '0']
+def shapiro_wilk(episdoes, dataet_name, train_test):
+  df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
+  outpupt = []
+  for episode in episodes:
+    buy = df[(df['Choice'] == '1') & (df['Episode'] == str(episode))]
+    sell = df[(df['Choice'] == '2') & (df['Episode'] == str(episode))]
+    hold = df[(df['Choice'] == '0') & (df['Episode'] == str(episode))]
 
-  stat, p = shapiro(sell['Price Delta'])
+    stat, p = shapiro(sell['Price Delta'])
 
-  print('Statistics=%.3f, p=%.3f' % (stat, p))
-  # interpret
-  alpha = 0.05
-  if p > alpha:
-    print('Sample looks Gaussian (fail to reject H0)')
-  else:
-    print('Sample does not look Gaussian (reject H0)')
+    output.append('Statistics=%.3f, p=%.3f' % (stat, p))
+  return output
+    # interpret
+    # alpha = 0.05
+    # if p > alpha:
+    #   print('Sample looks Gaussian (fail to reject H0)')
+    # else:
+    #   print('Sample does not look Gaussian (reject H0)')
+  

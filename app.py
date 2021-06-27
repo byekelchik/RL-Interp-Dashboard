@@ -1,133 +1,119 @@
-import datetime
-from pandas.core.indexes.datetimes import date_range
+# TODO:
+# 1. Fix visuals to allow for a dataset change
+# 2. List the proper number or episodes
+# 3. Fix graph output so that choosing 1->3->2 outputs the correct graph
+# 4. Set up visuals.py to call dataset only once rather than per function call
+
 import dash
 import dash_core_components as dcc
-import dash_html_components as html 
-import dash_bootstrap_components as dbc 
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd 
-import yfinance as yf
-import sys
+import dash_html_components as html
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
+from Visualization import visuals, structure_data
 
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI])
 
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+# Creates sidebar strcuture
+controls = dbc.Card(
+    [
+        dbc.FormGroup(
+            [
+                dbc.Label("Dataset"),
+                dcc.Dropdown(
+                    id="dataset_name",
+                    options=[
+                        {"label": '2018', "value": '2018'},
+                        {"label": 'COVID', "value": 'covid'}
+                    ],
+                    value='2018',
+                ),
+            ]
+        ),
+        dbc.FormGroup(
+            [
+                dbc.Label("Train or Test"),
+                dcc.Dropdown(
+                    id="train_test",
+                    options=[
+                        {"label": 'Train', "value": 'Train'},
+                        {"label": 'Test', "value": 'Test'}
+                    ],
+                    value="Train",
+                ),
+            ]
+        ),
+        dbc.FormGroup(
+            [
+            dbc.Label("Episodes"),
+            dcc.Checklist(id="episodes",
+                    options=[
+                        {"label": "1", "value": 1},
+                        {"label": "2", "value": 2},
+                        {"label": "3", "value": 3},
+                    ],
+                    value=[1]
+                    
+                    )
+            ]
+        ),
+    ],
+    body=True,
+)
+# Frontend layout for graphs
+app.layout = dbc.Container(
+    [
+        html.Hr(),
+        html.H1("Interpretability Dashboard", style={'text-align': 'center'}), # Header
+        html.Hr(),
+        # Columns for side panel and the outputted graphs and tables
+        dbc.Row(
+            [
+                dbc.Col(html.Div(controls), width=2),
+                dbc.Col(html.Div(id="delta-table"), width=4),
+                dbc.Col(html.Div(id="delta-graph"), width=6),
+            ],
+            align="start",
+        ),
+    ],
+    fluid=True,
+)
 
-colors = {
-    'background': '#14274E' ,
-    'text': '#F1F6F9'
-}
+#Callback for updating graph based on sidebar input
+@app.callback(# TODO: output not correct for graphs, it needs to reset the graph then output a new one rather than appending to current graph
+    Output(component_id="delta-graph", component_property="children"),
+    [
+        Input(component_id="episodes", component_property="value"),
+        Input(component_id="dataset_name", component_property="value"),
+    ],
+)
+def make_graphs(episodes, dataset_name):
+    output=[]
+    i = 0
+    df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
+    # Get a figure for each passed parameter
+    for vis in visuals.average_price_graph(episodes, str(dataset_name), df):
+        output.append(dcc.Graph(id='avg_price_graph'+str(i), figure=vis))
+        i += 1
+    return output
 
-#################(VISUALS)
-
-start = datetime.datetime(2019, 1, 1)
-end = datetime.datetime(2020, 1, 1)
-dataset = yf.download('VOO',start=start,end=end, interval='1d')
-
-yfDataframe = pd.DataFrame(dataset)
-
-price_data = yfDataframe["Adj Close"]
-price_data = price_data.iloc[1:]
-daily_pricedelta = price_data.pct_change()*100 #daily % change *100= raw delta 
-daily_pricedelta = daily_pricedelta.iloc[1:]
-interpretation_data = pd.read_csv("training_data.csv") #read in the csv file of interp. data. 
-interpretation_data.index = interpretation_data['date']
-interpretation_data = interpretation_data.drop('date', axis=1)
-interpretation_data = interpretation_data.iloc[2:]
-
-def adding_pdelta():
-  #Input: daily_pricedelta and training file w/epsilon greedy
-  #Returns: training file w/ a column added for daily price delta
-  #Hint: setting the Date to an index and converting it to DateTime dtype will make your life easier, also you'll need to drop the nan date
-  global interpretation_data
-  interpretation_data = interpretation_data.join(price_data, how='inner')
-  interpretation_data['delta'] = 0
-  interpretation_data['delta'] = daily_pricedelta
-  return interpretation_data
-
-adding_pdelta()
-
-
-# graphData = pd.DataFrame(interpretation_data)
-# btwn = graphData['delta'].between(0, .25, inclusive=True)
-
-# df = graphData[btwn]
-# fig = px.line(df, x=df.index, y=df["Adj Close"])
-
-
-# def SetColor(x): 
-#     if(x == 1):
-#         return 'green'
-#     elif(x == 0):
-#         return 'yellow'
-#     elif(x == 2):
-#         return 'red'
-
-# fig.update_traces(go.Scatter(
-#                 marker = dict(color=list(map(SetColor, interpretation_data['choice']))),
-#                 mode ='markers+lines'), )
-# fig.update_layout(
-#     title="Action for Specified Delta",
-#     xaxis_title="Trading Days", 
-#     yaxis_title="Price USD"
-# )
-# fig.update_layout(showlegend=True)
-
-
-df = interpretation_data
-fig = px.line(df, x=df.index, y='Adj Close', title='Price Over Time')
-
-
-
-app.layout = dbc.Container (style={'backgroundColor': colors['background']}, children=    [
-
-    html.H1(
-        children='RL Trading Algorithm Dashboard',
-        style={
-            'textAlign': 'center', 
-            'color': colors['text']
-        }
-    ),
-
-    html.Hr(), 
-
-    dcc.DatePickerRange(
-        id='date-picker-range', 
-        min_date_allowed = date_range(2000, 1, 1), 
-        max_date_allowed = date_range(2021, 1, 1), 
-    ),
-
-    dcc.Tabs([
-        dcc.Tab(label='Tab One', children = [
-            dcc.Graph(
-                figure = fig
-            )
-
-        ]), 
-        
-        dcc.Tab(label='Tab Two', children = [
-
-        ]),
-
-        dcc.Tab(label='Tab Three', children = [
-
-        ])
-
-
-
-    ])
-
-
-
-
+#Callback for updating graph based on sidebar input
+@app.callback(
+    Output(component_id="delta-table", component_property="children"),
+    [
+        Input(component_id="episodes", component_property="value"),
+        Input(component_id="dataset_name", component_property="value"),
+    ],
+)
+def make_table(episodes, dataset_name):
+    output=[]
+    i = 0
+    df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
+    # Get a figure for each passed parameter
+    for vis in visuals.average_state_table(episodes, str(dataset_name), df):
+        output.append(dcc.Graph(id='avg_price_table'+str(i), figure=vis))
+        i += 1
+    return output
     
-
-])
- 
-
-if __name__ == '__main__': 
-    app.run_server(port =4500)
-
-
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8888)
 

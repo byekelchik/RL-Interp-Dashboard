@@ -5,6 +5,8 @@
 from google.cloud import bigquery
 import pandas_gbq
 import yfinance as yf
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 import sys
 import datetime as dt
@@ -49,7 +51,7 @@ def get_data(requested_query):
 
   # connect to BigQuery table and execute query
   project_id = 'irlts-317602'
-  queryResult = pandas_gbq.read_gbq(requested_query, project_id=project_id) # do not filter query by choice
+  queryResult = pandas_gbq.read_gbq(requested_query, project_id=project_id, progress_bar_type=None) # do not filter query by choice
 
   # reformat 'Date' to datetime
   queryResult = queryResult.iloc[4:] 
