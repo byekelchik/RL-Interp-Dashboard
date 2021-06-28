@@ -1,15 +1,18 @@
+"""This is the main frontend module"""
 # TODO:
-# 1. Fix visuals to allow for a dataset change
-# 2. List the proper number or episodes
-# 3. Fix graph output so that choosing 1->3->2 outputs the correct graph
+# 1. List the proper number or episodes on sidebar, ulan
+# 2. Fix graph output so that choosing 1->3->2 outputs the correct graph, ulan
+# 3. Fix visuals to allow for a dataset change
 # 4. Set up visuals.py to call dataset only once rather than per function call
+# 5. Whole numbers only, ulan
 
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
-from Visualization import visuals, structure_data
+from Visualization import structure_data as sd
+from Visualization import visuals as vls
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI])
 
@@ -50,15 +53,16 @@ controls = dbc.Card(
                         {"label": "1", "value": 1},
                         {"label": "2", "value": 2},
                         {"label": "3", "value": 3},
+                        # {label:i, value:i } for i in data
                     ],
                     value=[1]
-                    
                     )
             ]
         ),
     ],
     body=True,
 )
+
 # Frontend layout for graphs
 app.layout = dbc.Container(
     [
@@ -89,9 +93,9 @@ app.layout = dbc.Container(
 def make_graphs(episodes, dataset_name):
     output=[]
     i = 0
-    df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
+    df = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
     # Get a figure for each passed parameter
-    for vis in visuals.average_price_graph(episodes, str(dataset_name), df):
+    for vis in vls.average_price_graph(episodes, str(dataset_name), df):
         output.append(dcc.Graph(id='avg_price_graph'+str(i), figure=vis))
         i += 1
     return output
@@ -107,9 +111,9 @@ def make_graphs(episodes, dataset_name):
 def make_table(episodes, dataset_name):
     output=[]
     i = 0
-    df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
+    df = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
     # Get a figure for each passed parameter
-    for vis in visuals.average_state_table(episodes, str(dataset_name), df):
+    for vis in vls.average_state_table(episodes, str(dataset_name), df):
         output.append(dcc.Graph(id='avg_price_table'+str(i), figure=vis))
         i += 1
     return output

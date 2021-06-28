@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import numpy as np
 from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
+import app
 
 # import structure_data
 # from structure_data import get_data, sys, os, pd
@@ -17,6 +18,33 @@ from statsmodels.graphics.gofplots import qqplot
   # 1.   Episodes
   # 2.   Dataset name(COVID, 2018)
   # 3.   Train or Test data
+
+
+# INPUT: 2 episodes to compare
+def two_way_table(episodes): # compare two datasets at a time
+  df = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` order by episode, date limit 600")
+  twt_dataframe = pd.DataFrame([[0, 0, 0], [0, 0, 0], [0, 0, 0]], columns=['Hold', 'Buy', 'Sell'], index=['Hold', 'Buy', 'Sell'])
+  total = 0
+  # split data into a df/episode
+  ep_one = df[df['Episode'] == str(episodes[0])]
+  ep_two = df[df['Episode'] == str(episodes[1])]
+  
+  # add overlapping values between two dfs to final table df
+  for c_x, v_x in enumerate(['Hold', 'Buy', 'Sell']):
+    for c_y, v_y in enumerate(['Hold', 'Buy', 'Sell']):
+        temp = pd.merge(ep_one[['Date', 'Choice']][ep_one['Choice'] == str(c_x)], ep_two[['Date', 'Choice']][ep_two['Choice']== str(c_y)], on='Date', how='inner')
+        twt_dataframe[v_x].iloc[c_y] = len(temp.index)
+        total += len(temp.index)
+  #Heatmap version        
+  # fig = px.imshow(twt_dataframe, labels=dict(x="Episode "+str(episodes[0]), y="Episode "+str(episodes[1]), color="Overlap"), color_continuous_scale=px.colors.sequential.Viridis)
+  # fig.update_xaxes(side="top")
+  fig = go.Figure(data=[go.Table(header=dict(values=['', 'Hold', 'Buy', 'Sell'], fill_color='paleturquoise'),
+               cells=dict(values=[twt_dataframe.index, twt_dataframe.Hold, twt_dataframe.Buy, twt_dataframe.Sell], fill_color='cornsilk'))
+                   ])
+  fig.update_layout(
+  title="Two-way Table: Episode " + str(episodes[0]) + ' x ' + "Episode " + str(episodes[1])
+  )
+  return fig
 
 # Average state(Price, Volume) table
 # INPUT: specific episodes, name of dataset being used(COVID, 2018), train or test data
@@ -105,7 +133,7 @@ def SetColor(x):
 # INPUT: lower and upper delta values, name of dataset, train or test dataset
 def heatmap_visual(lower, upper, episode):
 
-  graphData = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '"+str(episode)+"' order by episode, date")
+  graphData = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '"+str(episode)+"' order by episode, date")
   btwn = graphData['Price Delta'].between(lower, upper, inclusive = True)
   df = graphData[btwn]
 
@@ -138,12 +166,12 @@ def heatmap_visual(lower, upper, episode):
 def price(episode):
   #price_data
   #output: show the user the price overtime
-  df = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '"+str(episode)+"' order by date")
+  df = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '"+str(episode)+"' order by date")
   fig = px.line(df, x=df.index, y="Adj Close", title='Price Over Time')
   fig.show()
 
 def randon_action_plot(episode):
-  queryResult = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '"+str(episode)+"' order by date")
+  queryResult = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '"+str(episode)+"' order by date")
 
   #output: visual of the amount of random actions in a certain episode compared to real values
   ep_greedy = queryResult[queryResult['Hold']==str(-1)] #get the days when we dont go greedy
@@ -169,7 +197,7 @@ def randon_action_plot(episode):
 
 def qvalues_plot(episode):
 
-  queryResult = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '"+str(episode)+"' order by date")
+  queryResult = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '"+str(episode)+"' order by date")
 
   buy = queryResult[queryResult['Buy']!=-1]
   sell = queryResult[queryResult['Sell']!=-1]
@@ -200,7 +228,7 @@ def qvalues_plot(episode):
 
 # Quantile-Quantile Plot
 def qq_plot(episodes, dataset_name, train_test):
-  df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
+  df = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
   output = []
   for episode in episodes:
     buy = df[(df['Choice'] == '1') & (df['Episode'] == str(episode))]
@@ -248,9 +276,9 @@ def qq_plot(episodes, dataset_name, train_test):
     output.append(fig)
   return output
 # Shapiro-Wilk Test
-def shapiro_wilk(episdoes, dataet_name, train_test):
-  df = structure_data.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+dataset_name+"` order by episode, date")
-  outpupt = []
+def shapiro_wilk(episdoes, dataset_name, train_test):
+  df = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_"+str(dataset_name)+"` order by episode, date")
+  output = []
   for episode in episodes:
     buy = df[(df['Choice'] == '1') & (df['Episode'] == str(episode))]
     sell = df[(df['Choice'] == '2') & (df['Episode'] == str(episode))]
