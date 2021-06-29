@@ -1,23 +1,30 @@
+"""For on-going work"""
+import structure_data as sd
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
 
-# def confusion_matrix(): # compare two datasets at a time
-#   df = get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '1' order by date")
-#   # generate random values for truth
-#   truth = pd.DataFrame(np.random.randint(0,3,size=(len(df)+4)), columns=['Truth'])
-#   df['Truth'] = truth
-#   buyVal = []
-#   buy = df[['Choice', 'Truth']][df['Choice'] == '1']
-#   sell = df[['Choice', 'Truth']][df['Choice'] == '2']
-#   hold = df[['Choice', 'Truth']][df['Choice'] == '0']
-#   # buy = buy['Choice'][buy['Choice'].astype(int) == buy['Truth'].astype(int)].count()
-#   # sell = sell['Choice'][sell['Choice'].astype(int) == sell['Truth'].astype(int)].count()
-#   # hold = hold['Choice'][hold['Choice'].astype(int) == hold['Truth'].astype(int)].count()
-
-#   # fig = go.Figure(data=go.Heatmap(labels=dict(x="What Should have Happened", y="What Algo DId", color="Viridis"),
-#   #                  z=[[int(buy['Choice'][buy['Choice'].astype(int) == buy['Truth'].astype(int)].count()), int(buy['Choice'][buy['Choice'].astype(int) == buy[buy['Truth'] == '2'].astype(int)].count()), int(buy['Choice'][buy['Choice'].astype(int) == buy[buy['Truth'] == '0'].astype(int)].count())],
-#   #                     [sell['Choice'][sell['Choice'].astype(int) == sell[sell['Truth']=='1'].astype(int)].count(), sell['Choice'][sell['Choice'].astype(int) == sell['Truth'].astype(int)].count(), sell['Choice'][sell['Choice'].astype(int) == sell[sell['Truth']=='0'].astype(int)].count()],
-#   #                     [hold['Choice'][hold['Choice'].astype(int) == hold[hold['Truth']=='1'].astype(int)].count(), hold['Choice'][hold['Choice'].astype(int) == hold[hold['Truth']=='2'].astype(int)].count(), hold['Choice'][hold['Choice'].astype(int) == hold['Truth'].astype(int)].count()]],
-#   #                  x=['Buy', 'Sell', 'Hold'],
-#   #                  y=['Buy', 'Sell', 'Hold'],
-#   #                  hoverongaps = False))
-#   # fig.show()
-#   print(buy['Choice'][buy['Choice'].astype(int) == buy['Truth'].astype(int)].count().iloc[0])
+def two_way_table(episodes): # compare two datasets at a time
+  df = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` order by episode, date limit 600")
+  twt_dataframe = pd.DataFrame([[0, 0, 0], [0, 0, 0], [0, 0, 0]], columns=['Hold', 'Buy', 'Sell'], index=['Hold', 'Buy', 'Sell'])
+  total = 0
+  # split data into a df/episode
+  ep_one = df[df['Episode'] == str(episodes[0])]
+  ep_two = df[df['Episode'] == str(episodes[1])]
+  
+  # add overlapping values between two dfs to final table df
+  for c_x, v_x in enumerate(['Hold', 'Buy', 'Sell']):
+    for c_y, v_y in enumerate(['Hold', 'Buy', 'Sell']):
+        temp = pd.merge(ep_one[['Date', 'Choice']][ep_one['Choice'] == str(c_x)], ep_two[['Date', 'Choice']][ep_two['Choice']== str(c_y)], on='Date', how='inner')
+        twt_dataframe[v_x].iloc[c_y] = len(temp.index)
+        total += len(temp.index)
+  #Heatmap version        
+  # fig = px.imshow(twt_dataframe, labels=dict(x="Episode "+str(episodes[0]), y="Episode "+str(episodes[1]), color="Overlap"), color_continuous_scale=px.colors.sequential.Viridis)
+  # fig.update_xaxes(side="top")
+  fig = go.Figure(data=[go.Table(header=dict(values=['', 'Hold', 'Buy', 'Sell'], fill_color='paleturquoise'),
+               cells=dict(values=[twt_dataframe.index, twt_dataframe.Hold, twt_dataframe.Buy, twt_dataframe.Sell], fill_color='cornsilk'))
+                   ])
+  fig.update_layout(
+  title="Two-way Table: Episode " + str(episodes[0]) + ' x ' + "Episode " + str(episodes[1])
+  )
+  return fig

@@ -1,17 +1,11 @@
-#import all libraries and packages
-# !pip install yfinance
-# !pip install --upgrade google-cloud-bigquery
-# !pip install pandas-gbq -U
-from google.cloud import bigquery
-import pandas_gbq
-import yfinance as yf
+'''Gets and structures data'''
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
-import pandas as pd
-import sys
 import datetime as dt
-import os
-import numpy as np
+import yfinance as yf
+import pandas as pd
+import pandas_gbq
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 #GET THE DATA
 start = dt.datetime(2018, 1, 1)
@@ -20,12 +14,10 @@ dataset = yf.download('VOO',start=start,end=end,
                       interval='1d')
 
 # authorize google cloud connection
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/content/drive/MyDrive/Mountaintop2021/Google BQ Security/irlts-317602-7ed706ba79a2.json'
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/content/drive/MyDrive/Mountaintop2021/Google BQ Security/irlts-317602-7ed706ba79a2.json'
+queryResult = pd.DataFrame()
 # INPUT: SQL query string
 # OUTPUT: DataFrame holding returned query data
-
-queryResult = pd.DataFrame() 
-
 def get_data(requested_query):
 
   global queryResult
@@ -38,9 +30,9 @@ def get_data(requested_query):
 
   # ADJ CLOSE DATA
   price_data = yfDataframe["Adj Close"]
-  
+
   # PRICE DELTA DATA
-  daily_pricedelta = price_data.pct_change() * 100 # daily % change * 100 = raw delta 
+  daily_pricedelta = price_data.pct_change() * 100 # daily % change * 100 = raw delta
   daily_pricedelta = daily_pricedelta.iloc[1:]
   price_data = price_data.iloc[1:]
 
@@ -66,4 +58,3 @@ def get_data(requested_query):
   queryResult.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta', 'Adj Close']
 
   return queryResult
-# print(get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` where episode = '1' order by date limit 10"))
