@@ -19,10 +19,32 @@ import app
   # 2.   Dataset name(COVID, 2018)
   # 3.   Train or Test data
 
+def price_v_volume(episodes, dataset_name, data): # compare two datasets at a time
 
+  output = []
+  df = data
+  for episode in episodes:
+    df = df[df['Episode'] == str(episode)]
+    colorsIdx = {'0': 'Hold', '1': 'Buy',
+                '2': 'Sell'}
+    cols      = df['Choice'].map(colorsIdx)
+    fig = px.scatter(df, x="Price Delta", y="Volume Delta", color=cols)
+
+    
+    fig.update_layout(
+    title="Episode "+str(episode)+": B/S/H for Price/Volume Delta",
+    xaxis_title="Price Delta",
+    yaxis_title="Volume Delta",
+    legend_title_text='Action'
+    )
+
+    output.append(fig)
+    df = data
+  return output
+  
 # INPUT: 2 episodes to compare
-def two_way_table(episodes): # compare two datasets at a time
-  df = sd.get_data("select * from `irlts-317602.Training_Data_15eps.training_data_10eps_2018` order by episode, date limit 600")
+def two_way_table(episodes, df): # compare two datasets at a time
+  df = df
   twt_dataframe = pd.DataFrame([[0, 0, 0], [0, 0, 0], [0, 0, 0]], columns=['Hold', 'Buy', 'Sell'], index=['Hold', 'Buy', 'Sell'])
   total = 0
   # split data into a df/episode
@@ -38,8 +60,8 @@ def two_way_table(episodes): # compare two datasets at a time
   #Heatmap version        
   # fig = px.imshow(twt_dataframe, labels=dict(x="Episode "+str(episodes[0]), y="Episode "+str(episodes[1]), color="Overlap"), color_continuous_scale=px.colors.sequential.Viridis)
   # fig.update_xaxes(side="top")
-  fig = go.Figure(data=[go.Table(header=dict(values=['', 'Hold', 'Buy', 'Sell'], fill_color='paleturquoise'),
-               cells=dict(values=[twt_dataframe.index, twt_dataframe.Hold, twt_dataframe.Buy, twt_dataframe.Sell], fill_color='cornsilk'))
+  fig = go.Figure(data=[go.Table(header=dict(height = 38, values=['', 'Hold', 'Buy', 'Sell'], fill_color='paleturquoise'),
+               cells=dict(height = 25, values=[twt_dataframe.index, twt_dataframe.Hold, twt_dataframe.Buy, twt_dataframe.Sell], fill_color='cornsilk'))
                    ])
   fig.update_layout(
   title="Two-way Table: Episode " + str(episodes[0]) + ' x ' + "Episode " + str(episodes[1])
@@ -80,6 +102,34 @@ def average_state_table(episodes, dataset_name, data):
     fig_output.append(fig)
     
   return fig_output
+
+def testing_average_state_table(dataset_name, data):
+
+  df = data
+  
+  # restrcuture data by choice and episode
+  buy = df[df['Choice'] == '1']
+  sell = df[df['Choice'] == '2']
+  hold = df[df['Choice'] == '0']
+  hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True) # REMOVE
+  bsh = pd.concat([buy.median().round(2).astype(str) + '%', sell.median().round(2).astype(str) + '%', hold.median().round(2).astype(str) + '%'])
+
+  # create plotly table
+  fig = go.Figure(data=[go.Table(columnwidth = 1,
+    header=dict(height = 38, values=['Action', 'Price Delta', 'Volume Delta'],
+                fill_color='paleturquoise',
+                align='left'),
+    cells=dict(height = 25, values=[['Buy', 'Sell', 'Hold'], bsh['Price Delta'], bsh['Volume Delta']],
+              fill_color='cornsilk',
+              align='left'))
+  ])
+
+  fig.update_layout(
+  title="Average State",
+  height=300
+  )
+  
+  return fig
 
 # Average state(Price, Volume) graph
 # INPUT: specific episodes, name of dataset being used(COVID, 2018)
