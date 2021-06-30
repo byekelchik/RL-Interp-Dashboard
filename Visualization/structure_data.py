@@ -7,21 +7,32 @@ import pandas_gbq
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-#GET THE DATA
-start = dt.datetime(2018, 1, 1)
-end = dt.datetime(2019, 1, 1)
-dataset = yf.download('VOO',start=start,end=end,
-                      interval='1d')
+
 
 # authorize google cloud connection
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/content/drive/MyDrive/Mountaintop2021/Google BQ Security/irlts-317602-7ed706ba79a2.json'
 queryResult = pd.DataFrame()
+
 # INPUT: SQL query string
 # OUTPUT: DataFrame holding returned query data
-def get_data(requested_query):
-
+def get_data(dataset_name, train_test):
+  if dataset_name == '2018':
+    #GET THE DATA
+    start = dt.datetime(2018, 1, 1)
+    end = dt.datetime(2019, 1, 1)
+    
+  else:
+    #GET THE DATA
+    start = dt.datetime(2019, 1, 1)
+    end = dt.datetime(2020, 1, 1)
+                     
+  if train_test == 'Training':
+    requested_query = "select * from `irlts-317602."+str(train_test)+".10eps_"+dataset_name+"` order by episode, date"
+  else:
+    requested_query = "select * from `irlts-317602."+str(train_test)+".10eps_"+dataset_name+"` order by date"
   global queryResult
   # resize data to match size from trading algorithm
+  dataset = yf.download('VOO',start=start,end=end, interval='1d')
   yfDataframe = pd.DataFrame(dataset)
   validation_size = 0.2
   train_size = int(len(yfDataframe) * (1-validation_size))
@@ -53,8 +64,14 @@ def get_data(requested_query):
   # join all data
   queryResult = queryResult.join(daily_pricedelta, on='Date', how='inner')
   queryResult = queryResult.join(daily_volumedelta, on='Date', how='inner')
-  queryResult.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta']
+  if train_test == 'Training':
+    queryResult.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta']
+  else:
+    queryResult.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Price Delta', 'Volume Delta']
   queryResult = queryResult.join(price_data, on='Date', how='inner')
-  queryResult.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta', 'Adj Close']
-
+  if train_test == 'Training':
+    queryResult.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta', 'Adj Close']
+  else:
+    queryResult.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Price Delta', 'Volume Delta', 'Adj Close']
+  
   return queryResult
