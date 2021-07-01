@@ -73,6 +73,13 @@ def average_state_table(episodes, data):
         buy = df[(df['Choice'] == '1') & (df['Episode'] == str(episode))]
         sell = df[(df['Choice'] == '2') & (df['Episode'] == str(episode))]
         hold = df[(df['Choice'] == '0') & (df['Episode'] == str(episode))]
+            # check to confirm non-empty dfs
+        if len(hold.index) == 0:
+            hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True)
+        if len(sell.index) == 0:
+            sell = sell.append(pd.Series(0, index=df.columns), ignore_index=True)
+        if len(hold.index) == 0:
+            hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True)
         bsh = pd.concat([buy.median().round(2).astype(str) + '%', sell.median().round(2).astype(str) + '%', hold.median().round(2).astype(str) + '%'])
 
         # create plotly table
@@ -95,42 +102,6 @@ def average_state_table(episodes, data):
 
     return fig_output
 
-def testing_average_state_table(data):
-
-    df = data
-    
-    # restrcuture data by choice and episode
-    buy = df[df['Choice'] == '1']
-    sell = df[df['Choice'] == '2']
-    hold = df[df['Choice'] == '0']
-
-    # check to confirm non-empty dfs
-    if len(hold.index) == 0:
-        hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True)
-    if len(sell.index) == 0:
-        sell = sell.append(pd.Series(0, index=df.columns), ignore_index=True)
-    if len(hold.index) == 0:
-        hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True)
-
-    bsh = pd.concat([buy.median().round(2).astype(str) + '%', sell.median().round(2).astype(str) + '%', hold.median().round(2).astype(str) + '%'])
-
-    # create plotly table
-    fig = go.Figure(data=[go.Table(columnwidth = 1,
-        header=dict(height = 38, values=['Action', 'Price Delta', 'Volume Delta'],
-                    fill_color='paleturquoise',
-                    align='left'),
-        cells=dict(height = 25, values=[['Buy', 'Sell', 'Hold'], bsh['Price Delta'], bsh['Volume Delta']],
-                fill_color='cornsilk',
-                align='left'))
-    ])
-
-    fig.update_layout(
-    title="Average State",
-    height=300
-    )
-    
-    return fig
-
 # Average state(Price, Volume) graph
 # INPUT: specific episodes, name of dataset being used(COVID, 2018)
 def average_price_graph(episodes, data):
@@ -147,6 +118,14 @@ def average_price_graph(episodes, data):
         buy = buy.append(df[(df['Choice'] == '1') & (df['Episode'] == str(episode))].median(), ignore_index=True)
         sell = sell.append(df[(df['Choice'] == '2') & (df['Episode'] == str(episode))].median(), ignore_index=True)
         hold = hold.append(df[(df['Choice'] == '0') & (df['Episode'] == str(episode))].median(), ignore_index=True)
+    
+    # check to confirm non-empty dfs
+    if len(hold.index) == 0:
+        hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True)
+    if len(sell.index) == 0:
+        sell = sell.append(pd.Series(0, index=df.columns), ignore_index=True)
+    if len(buy.index) == 0:
+        buy = buy.append(pd.Series(0, index=df.columns), ignore_index=True)
 
     # plot a line for the specified number of episodes
     for state in ['Price', 'Volume']:
@@ -216,15 +195,14 @@ def heatmap_visual(lower, upper, episode, data):
 #     fig = px.line(df, x=df.index, y="Adj Close", title='Price Over Time')
 #     fig.show()
 
-def randon_action_plot(episode, data):
-    queryResult = data
+def random_action_plot(episode, data):
+    queryResult = data[data['Episode'] == str(episode)]
 
     #output: visual of the amount of random actions in a certain episode compared to real values
     ep_greedy = queryResult[queryResult['Hold']==str(-1)] #get the days when we dont go greedy
     ep_greedy_days = ep_greedy.shape[0] #get the shape of df and take the first value of list
     non_greedy_days = queryResult.shape[0] - ep_greedy_days #subtract greedy days from total trading horizon
     pct_greedy = (ep_greedy_days)/queryResult.shape[0]
-    pct_non_greedy = 1-pct_greedy
 
     ###now plot pct_greedy and pct_non_greedy
     labels = ['Greedy', 'Non-Greedy']
@@ -237,9 +215,10 @@ def randon_action_plot(episode, data):
     fig.update_traces(hoverinfo='label+percent', textinfo='value', textfont_size=20,
                     marker=dict(colors=colors, line=dict(color='#000000', width=2)))
     fig.update_layout(
-        title="Greedy vs. Non-greedy"
+        title="Greedy vs. Non-greedy",
+        height=300
     )
-    fig.show()
+    return fig
 
 def qvalues_plot(episode, data):
 

@@ -75,4 +75,5 @@ def get_data(dataset_name, train_test):
     else:
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Price Delta', 'Volume Delta', 'Adj Close']
 
+
     return query_result
