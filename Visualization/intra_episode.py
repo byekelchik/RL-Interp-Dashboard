@@ -5,7 +5,6 @@ import dash_core_components as dcc
 from dash.dependencies import Input, Output
 from Visualization import structure_data as sd
 from Visualization import visuals as vls
-import dash_html_components as html
 
 def make_layout():
     """Creates layout for visualization"""
@@ -18,14 +17,16 @@ def make_layout():
                         [
                             dbc.Label("Visualization"),
                             dcc.Dropdown(
-                                id="inter_vis",
+                                id="intra_vis",
                                 options=[
-                                    {"label": 'State Delta Table', "value": 'delta-table'},
+                                    {"label": 'State Delta Table', "value": 'state-delta-table'},
+                                    {"label": 'State Delta Graphs', "value": 'state-delta-graph'},
                                 ],
-                                value='delta-table',
+                                value='state-delta-table',
                             ),
                         ]
                     ),
+                    
                     dbc.FormGroup(
                         [
                             dbc.Label("Dataset"),
@@ -56,8 +57,7 @@ def make_layout():
             body=True,
             )
         ),
-            dbc.Col(id="delta-table", width=5),
-            dbc.Col(id="pie-chart", width=4),
+            dbc.Col(id="intra-visual-output", width=9),
             
         ]
     )
@@ -65,18 +65,24 @@ def make_layout():
 def register_callbacks(app):
     """Takes input from frontend and send back the updated visual"""
     @app.callback(
-        [Output(component_id="delta-table", component_property="children"),
-         Output(component_id="pie-chart", component_property="children")],
+        Output(component_id="intra-visual-output", component_property="children"),
         [
             Input(component_id="episode", component_property="value"),
             Input(component_id="t2_dataset_name", component_property="value"),
-            Input(component_id="inter_vis", component_property="value"),
+            Input(component_id="intra_vis", component_property="value"),
+
         ],
     )
     def make_graphs(episode, dataset_name, visual):
         output = []
+        i = 0
         df = sd.get_data(dataset_name, 'Training')
         # Add figures to output
-        state_table = dcc.Graph(id='average_state_table', figure=vls.average_state_table([episode], df)[0])
-        pie_chart = dcc.Graph(id='greedy-pie-chart', figure = vls.random_action_plot(episode, df))
-        return state_table, pie_chart
+        if visual == 'state-delta-table':
+            output.append(dcc.Graph(id='average-state-table', figure=vls.average_state_table([episode], df)[0]))
+            output.append(dcc.Graph(id='greedy-pie-chart', figure = vls.random_action_plot(episode, df)))
+        elif visual == 'state-delta-graph':
+            for vis in vls.intra_average_price_graph(episode, df):
+                output.append(dcc.Graph(id='average-state-graph'+str(i), figure = vis))
+                i+=1
+        return output
