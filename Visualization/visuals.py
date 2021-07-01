@@ -11,7 +11,6 @@ from statsmodels.graphics.gofplots import qqplot
 # 2.   Dataset name(COVID, 2018)
 # 3.   Train or Test data
 
-
 def price_v_volume(episodes, data):  # compare two datasets at a time
 
     output = []
@@ -56,7 +55,8 @@ def two_way_table(episodes, data): # compare two datasets at a time
                 cells=dict(height = 25, values=[twt_dataframe.index, twt_dataframe.Hold, twt_dataframe.Buy, twt_dataframe.Sell], fill_color='cornsilk'))
                     ])
     fig.update_layout(
-    title="Two-way Table: Episode " + str(episodes[0]) + ' x ' + "Episode " + str(episodes[1])
+    title="Two-way Table: Episode " + str(episodes[0]) + ' x ' + "Episode " + str(episodes[1]),
+    height=300
     )
     return fig
 
@@ -168,7 +168,7 @@ def average_price_graph(episodes, data):
         yaxis_title="% Change"
         )
         fig_output.append(fig)
-        
+
     return fig_output
 
 # Helper function for heatmap visual

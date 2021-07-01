@@ -29,8 +29,7 @@ def make_layout():
                 )
             )
         ),
-        html.Spacer(),
-        dbc.Col(id="testing-delta-table", width=8),
+        dbc.Col(id="testing-delta-table", width=9),
         ])
 
 def register_callbacks(app):
