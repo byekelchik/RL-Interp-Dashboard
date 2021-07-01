@@ -17,9 +17,9 @@ def price_v_volume(episodes, data):  # compare two datasets at a time
     df = data
     for episode in episodes:
         df = df[df['Episode'] == str(episode)]
-        colorsIdx = {'0': 'Hold', '1': 'Buy',
+        colors_id = {'0': 'Hold', '1': 'Buy',
                     '2': 'Sell'}
-        cols = df['Choice'].map(colorsIdx)
+        cols = df['Choice'].map(colors_id)
         fig = px.scatter(df, x="Price Delta", y="Volume Delta", color=cols)
 
         fig.update_layout(
@@ -104,7 +104,7 @@ def average_state_table(episodes, data):
 
 # Average state(Price, Volume) graph
 # INPUT: specific episodes, name of dataset being used(COVID, 2018)
-def average_price_graph(episodes, data):
+def inter_average_price_graph(episodes, data):
 
     fig_output = []
     df = data
@@ -150,6 +150,31 @@ def average_price_graph(episodes, data):
 
     return fig_output
 
+
+# Average state(Price, Volume) graph
+# INPUT: specific episodes, name of dataset being used(COVID, 2018)
+def intra_average_price_graph(episode, data):
+
+    fig_output = []
+    df = data[data['Episode'] == str(episode)]
+
+    # plot a line for the specified number of episodes
+    for state in ['Price', 'Volume']:
+        colors_id = {'0': 'Hold', '1': 'Buy',
+                    '2': 'Sell'}
+        cols = df['Choice'].map(colors_id)
+
+        fig= px.scatter(x=df['Date'], y=df[state+' Delta'], color = cols)
+        fig.add_trace(go.Scatter(x=df['Date'], y=df[state+' Delta'], mode='lines'))
+
+        fig.update_layout(
+        title="Episode " + str(episode) + ": Average "+state+" Delta",
+        xaxis_title="Date",
+        yaxis_title="% Change"
+        )
+        fig_output.append(fig)
+
+    return fig_output
 # Helper function for heatmap visual
 def SetColor(x):
     if x == 1:
@@ -169,7 +194,6 @@ def heatmap_visual(lower, upper, episode, data):
     fig = go.Figure()
 
     # graph data for days with delta between inputted values
-
     fig.add_trace(go.Scatter(x=df["Date"], y=df["Adj Close"],
                         mode='lines+markers'))
 

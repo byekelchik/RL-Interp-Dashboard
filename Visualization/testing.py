@@ -29,8 +29,8 @@ def make_layout():
                 )
             )
         ),
-        dbc.Col(id="testing-delta-table", width=4),
-        dbc.Col(id="testing-price-volume", width=4),
+        dbc.Col(id="testing-delta-table", width=8),
+        dbc.Col(id="testing-price-volume", width=8),
         # dbc.Col(id="heatmap-visual", width=4),
         dbc.Col(id="qvalues-plot", width=8),
 
