@@ -2,6 +2,7 @@
 
 from random import randint
 import dash_bootstrap_components as dbc
+import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
 from Visualization import structure_data as sd
@@ -13,7 +14,21 @@ def make_layout():
     return dbc.Row(
         [
             dbc.Col(dbc.Card(
-        [
+                [
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Visualization"),
+                            dcc.Dropdown(
+                                id="intra_vis",
+                                options=[
+                                    {"label": 'Two-way Table', "value": 'tw-table'},
+                                    {"label": 'State Delta Graph', "value": 'state-delta-graph'},
+                                    {"label": 'B/S/H for Price/Volume Delta', "value": 'price-volume'},
+                                ],
+                                value='tw-table',
+                            ),
+                        ]
+                    ),
                     dbc.FormGroup(
                         [
                             dbc.Label("Dataset"),
@@ -25,19 +40,6 @@ def make_layout():
                                 ],
                                 value='2018',
                             ),
-                        ]
-                    ),
-                    dbc.FormGroup(
-                        [
-                                dbc.Label("Train or Test"),
-                                dcc.Dropdown(
-                                    id="t1_train_test",
-                                    options=[
-                                        {"label": 'Train', "value": 'Training'},
-                                        {"label": 'Test', "value": 'Testing'}
-                                    ],
-                                    value="Training",
-                                ),
                         ]
                     ),
                     dbc.FormGroup(
@@ -63,23 +65,41 @@ def make_layout():
         ],
         body=True,
     )),
-            dbc.Col(id="two-way-table", width=8),
+            dbc.Col(id="chosen-visual", width=9),
         ]
     )
+
 def register_callbacks(app):
-    """Takes input from frontend and send back the updated visual"""
+    """Takes input from frontend and sends back the updated visual"""
     @app.callback(
-        Output(component_id="two-way-table", component_property="children"),
+        Output(component_id="chosen-visual", component_property="children"),
         [
             Input(component_id="episode1", component_property="value"),
             Input(component_id="episode2", component_property="value"),
             Input(component_id="t1_dataset_name", component_property="value"),
-            Input(component_id="t1_train_test", component_property="value"),
+            Input(component_id="intra_vis", component_property="value"),
         ],
     )
-    def make_two_way_table(episode1, episode2, dataset_name, train_test):
-
-        df = sd.get_data(dataset_name, train_test) # Never run with Testing
+    def make_visuals(episode1, episode2, dataset_name, visual):
+        output = []
+        i = 0
+        df = sd.get_data(dataset_name, 'Training') # Never run with Testing
         # Get a figure for each passed parameter
         episodes = [episode1, episode2]
-        return dcc.Graph(id=str(randint(10000, 99999)), figure=vls.two_way_table(episodes, df))
+        graph_episodes = list(range(episode1, episode2+1))
+
+        if visual == 'state-delta-graph':
+            # Get a figure for each passed parameter
+            for vis in vls.average_price_graph(graph_episodes, df):
+                output.append(dcc.Graph(id='avg_price_graph'+str(i), figure=vis))
+                i += 1
+        elif visual == 'tw-table':
+            output.append(dcc.Graph(id=str(randint(10000, 99999)), figure=vls.two_way_table(episodes, df)))
+            for vis in vls.average_state_table(graph_episodes, df):
+                output.append(dcc.Graph(id='average_state_table'+str(i), figure=vis))
+                i += 1
+        elif visual == 'price-volume':
+            for vis in vls.price_v_volume(graph_episodes, df):
+                output.append(dcc.Graph(id='price_v_volume'+str(i), figure=vis))
+                i += 1
+        return output
