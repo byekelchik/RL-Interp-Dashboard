@@ -41,15 +41,14 @@ def make_layout():
                     ),
                     dbc.FormGroup(
                         [
-                            dbc.Label("Episodes"),
-                            dcc.Checklist(id="episodes",
-                                options=[
-                                    {"label": "1", "value": 1},
-                                    {"label": "2", "value": 2},
-                                    {"label": "3", "value": 3},
-                                    # {label:i, value:i } for i in data
-                                ],
-                                value=[1, 2],
+                            dbc.Label("Select episode:"),
+                            dcc.Slider(
+                                id="episode",
+                                min=0,
+                                max=10,
+                                step=None,
+                                marks={i:str(i) for i in range(11)} ,
+                                value=1
                             )
                         ]
                     )
@@ -57,7 +56,8 @@ def make_layout():
             body=True,
             )
         ),
-            dbc.Col(id="delta-table", width=9),
+            dbc.Col(id="delta-table", width=5),
+            dbc.Col(id="pie-chart", width=4),
             
         ]
     )
@@ -65,19 +65,18 @@ def make_layout():
 def register_callbacks(app):
     """Takes input from frontend and send back the updated visual"""
     @app.callback(
-        Output(component_id="delta-table", component_property="children"),
+        [Output(component_id="delta-table", component_property="children"),
+         Output(component_id="pie-chart", component_property="children")],
         [
-            Input(component_id="episodes", component_property="value"),
+            Input(component_id="episode", component_property="value"),
             Input(component_id="t2_dataset_name", component_property="value"),
             Input(component_id="inter_vis", component_property="value"),
         ],
     )
-    def make_graphs(episodes, dataset_name, visual):
-        tables = []
-        i = 0
+    def make_graphs(episode, dataset_name, visual):
+        output = []
         df = sd.get_data(dataset_name, 'Training')
-        # Get a figure for each passed parameter
-        for vis in vls.average_state_table(episodes, df):
-            tables.append(dcc.Graph(id='average_state_table'+str(i), figure=vis))
-            i += 1
-        return tables
+        # Add figures to output
+        state_table = dcc.Graph(id='average_state_table', figure=vls.average_state_table([episode], df)[0])
+        pie_chart = dcc.Graph(id='greedy-pie-chart', figure = vls.random_action_plot(episode, df))
+        return state_table, pie_chart
