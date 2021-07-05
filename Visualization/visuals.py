@@ -142,7 +142,7 @@ def inter_average_price_graph(episodes, data):
                         mode='lines+markers',
                         name='Hold'))
         fig.update_layout(
-        title="Average "+state+" Delta by Episode",
+        title=state+" Delta by Episode",
         xaxis_title="Episode",
         yaxis_title="% Change"
         )
@@ -165,12 +165,17 @@ def intra_average_price_graph(episode, data):
         cols = df['Choice'].map(colors_id)
 
         fig= px.scatter(x=df['Date'], y=df[state+' Delta'], color = cols)
-        fig.add_trace(go.Scatter(x=df['Date'], y=df[state+' Delta'], mode='lines'))
 
         fig.update_layout(
-        title="Episode " + str(episode) + ": Average "+state+" Delta",
-        xaxis_title="Date",
-        yaxis_title="% Change"
+            xaxis = dict(
+                tickmode = 'linear',
+                tick0 = 0,
+                dtick = 1
+            ),
+            title="Episode " + str(episode) + ": Average "+state+" Delta",
+            xaxis_title="Date",
+            yaxis_title="% Change",
+            legend_title_text='Action'
         )
         fig_output.append(fig)
 

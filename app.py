@@ -1,11 +1,8 @@
 """This is the main frontend module"""
 # 1. List the proper number or episodes on sidebar, ulan
-# 2. Fix graph output so that choosing 1->3->2 outputs the correct graph, ulan
-# 3. Fix visuals to allow for a dataset change
-# 4. Set up visuals.py to call dataset only once rather than per function call
 # 5. Whole numbers only, ulan
-# 6. Create a tab for each table so we dont have a long list when comparing many episodes
-# 7: IMPORTANT: need to look at training.2018 episode 5
+# 8. keep B/S/H constant colors, use color.py(maybe)
+
 
 import dash
 import dash_core_components as dcc
