@@ -49,7 +49,7 @@ def make_layout():
                                 min=0,
                                 max=10,
                                 step=None,
-                                marks={i:str(i) for i in range(11)} ,
+                                marks={i:str(i) for i in range(11)},
                                 value=1
                             ),
                             dcc.Slider(
@@ -71,9 +71,9 @@ def make_layout():
 def register_callbacks(app):
     """Takes input from frontend and sends back the updated visual"""
     @app.callback(
-        
+
             Output(component_id="chosen-visual", component_property="children"),
-        
+
         [
             Input(component_id="episode1", component_property="value"),
             Input(component_id="episode2", component_property="value"),

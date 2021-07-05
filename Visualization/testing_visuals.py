@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
 
-
 # Helper function for heatmap visual
 def SetColor(x):
     if x == 1:
@@ -67,29 +66,18 @@ def get(data):
     output.append(fig2)
 
     '''Q-Values Plot'''
-    buy = data[data['Buy']!=-1]
-    sell = data[data['Sell']!=-1]
-    hold = data[data['Hold']!=-1]
-
-    # check to confirm non-empty dfs
-    if len(hold.index) == 0:
-        hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True)
-    if len(sell.index) == 0:
-        sell = sell.append(pd.Series(0, index=df.columns), ignore_index=True)
-    if len(buy.index) == 0:
-        buy = buy.append(pd.Series(0, index=df.columns), ignore_index=True)
-    df = pd.concat([buy, sell, hold]).drop_duplicates()
+    df = data[(data['Buy']!=-1) & (data['Sell']!=-1) & (data['Hold']!=-1)] # -1 is E-Greedy
 
     fig3 = go.Figure(layout=go.Layout(
             title=go.layout.Title(text="B/S/H Q-Values over time")
         ))
-    fig3.add_trace(go.Scatter(x=df.index, y=df['Buy'],
+    fig3.add_trace(go.Scatter(x=df['Date'], y=df['Buy'].astype(float),
                         mode='markers',
                         name='Buy'))
-    fig3.add_trace(go.Scatter(x=df.index, y=df['Hold'],
+    fig3.add_trace(go.Scatter(x=df['Date'], y=df['Hold'].astype(float),
                     mode='markers',
                     name='Hold'))
-    fig3.add_trace(go.Scatter(x=df.index, y=df['Sell'],
+    fig3.add_trace(go.Scatter(x=df['Date'], y=df['Sell'].astype(float),
                     mode='markers',
                     name='Sell'))
 
