@@ -7,7 +7,7 @@ import dash_html_components as html
 
 message = """
 
-### Welcome to our Reinforcement Learning Interpertation Dash App
+## **Welcome to our Reinforcement Learning Interpertation Dash App**
 
 This app provides insights into the decisions and actions of an RL trading agent
 
@@ -19,7 +19,7 @@ Throughout this app, trading actions are encoded as follows:
 
 - If the action is 0, then there is no trade. The state can be called holding during that period.
 
-## Tabs:
+### **Tabs:**
 
 1. Testing (Interperting the agent outside of its training enviornment):
 
@@ -37,6 +37,8 @@ Throughout this app, trading actions are encoded as follows:
 
 - Heatmap
 
+- Q-Values Plot
+
 3. Inter-Episode (Interperting the agent evolving over episodes):
 
 - State Delta Graph
@@ -48,13 +50,13 @@ Throughout this app, trading actions are encoded as follows:
 """
 def make_layout():
 
-    style_table = {
-            'borderBottom': '1px solid #222831',
-            'borderTop': '1px solid #222831',
-            'padding': '6px',
-            'borderRadius': '15px',
-            'overflow': 'hidden',
-            # 'fontWeight': 'bold'
-        }
-        
-    return html.Div(dcc.Markdown(message), style={'color': '#ffd369', 'font': 'San Francisco font'})
+    style_markdown = {
+        'textAlign':'left', 
+        'display': 'inline-block', 
+        'color': '#ffd369', 
+        'font': 'San Francisco font', 
+        'border-radius': 15, 
+        'backgroundColor':'#393E46',
+        'padding': '20px'}
+
+    return html.Div(dcc.Markdown(message, style=style_markdown), style={'textAlign': 'center', 'padding': '30px'})
