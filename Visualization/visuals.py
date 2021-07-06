@@ -1,17 +1,45 @@
 # Import libraries and packages
 import pandas as pd
 import plotly.express as px
+import numpy as np
 import plotly.graph_objects as go
 from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
 from Visualization import colors
 
-# Visualizations
-# Parameters:
-# 1.   Episodes
-# 2.   Dataset name(COVID, 2018)
-# 3.   Train or Test data
+# BEAR: define this
+# BULL: define this
+def heatmap(episode, data):
+    graphs = []
+    i, j = 0, 0
+    x, y = [], []
+    columns = []
 
+    df = data # Never run with Testing
+    df = df[(df['Episode'] == str(episode))]
+
+    price_min, price_max = min(df['Price Delta']), max(df['Price Delta'])
+    volume_min, volume_max = min(df['Volume Delta']), max(df['Volume Delta'])
+
+    x = pd.cut(df['Price Delta'], retbins=True, bins=pd.interval_range(start=price_min-.1, end=price_max+.1, periods = 15))
+    y = pd.cut(df['Volume Delta'], retbins=True, bins=pd.interval_range(start=volume_min-1, end=volume_max+1, periods = 15))
+    x = x[1].to_tuples()
+    y = y[1].to_tuples()
+
+    new_df = pd.DataFrame(np.zeros(((len(y)-1, len(x)-1))))
+    for i in range(1, len(x)):
+        for j in range(1, len(y)):
+            values = df['Choice'][(df['Price Delta'].astype(float).between(x[i-1][0], x[i][0], inclusive = True)) & (df['Volume Delta'].astype(float).between(y[j-1][0], y[j][0], inclusive = True))]
+            new_df[i-1][j-1] = values.median() if len(values) > 0 else -2
+
+    fig = go.Figure(go.Heatmap(z=new_df, x=x[1], y=y[1], colorscale=colors.get_colorscale()))
+    fig.update_layout(
+        title="Price v Volume Heatmap",
+        xaxis_title="Price Delta",
+        yaxis_title="Volume Delta"
+    )
+    
+    return fig
 def price_v_volume(episodes, data):  # compare two datasets at a time
 
     output = []

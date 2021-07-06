@@ -21,6 +21,7 @@ def make_layout():
                                 options=[
                                     {"label": 'State Delta Table', "value": 'state-delta-table'},
                                     {"label": 'State Delta Graphs', "value": 'state-delta-graph'},
+                                    {"label": 'Heatmap', "value": 'heatmap'},
                                 ],
                                 value='state-delta-table',
                             ),
@@ -85,4 +86,6 @@ def register_callbacks(app):
             for vis in vls.intra_state_delta_graph(episode, df):
                 output.append(dcc.Graph(id='average-state-graph'+str(i), figure = vis))
                 i+=1
+        elif visual == 'heatmap':
+            output.append(dcc.Graph(id='heatmap', figure = vls.heatmap(episode, df)))
         return output

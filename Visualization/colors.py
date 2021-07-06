@@ -19,9 +19,9 @@ def get_colorscale():
 
 	# specifies values for gradient scale
 	colorscale = [[0, '#D3D3D3'], # null values
-					[.5, '#ffdb58'], # hold
-					[.75, '#66CDAA'], # buy
-					[1, '#f88379']] # sell
+					[.5, '#F2BE4A'], # hold
+					[.75, '#01A6A4'], # buy
+					[1, '#EC6355']] # sell
 
 	return colorscale
 
