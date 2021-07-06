@@ -15,6 +15,17 @@ def make_layout():
             html.Div(
                     dbc.Card(
                             [
+                                # Dropdown to select visualization
+                                dbc.Label("Visualization", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                                dcc.Dropdown(
+                                    id="test_vis",
+                                    options=[
+                                        {"label": 'Action Graphs', "value": 'action-graphs'},
+                                        {"label": 'Heatmap', "value": 'test-heatmap'},
+                                        {"label": 'Action Distribution', "value": 'test-action-distribution'},
+                                    ],
+                                    value='action-graphs', # initial value in dropdown
+                                ),
                                 dbc.Label("Dataset", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
                                 dcc.Dropdown(
                                     
@@ -25,46 +36,47 @@ def make_layout():
                                     ],
                                     value='2018',
                                 ),
-                            ],style={'backgroundColor': '#222831', 'height':'100vh'},#, 'height':'100vh'
+                            ],style={'backgroundColor': '#222831', 'height':'120vh','padding': 20},#, 'height':'100vh'
                         
-                    ), style={'width': '19%', 'display': 'inline-block', 'vertical-align': 'top', 'padding':'20px'}),
-                html.Div([
-                    dbc.Row(dbc.Col(id="testing-delta-table", width=13), style={'padding':'15px'}),
-                    dbc.Row([dbc.Col(id="qvalues-plot", width=6), 
-                            dbc.Col(id="testing-price-volume", width=6),]
-                        )], style={'width': '79%', 'display': 'inline-block'})
-    ])
+                    ), style={'width': '24%', 'display': 'inline-block', 'vertical-align': 'top', 'padding':'20px'}),
 
-            
-            
-       
+                html.Div(
+                    [
+                        dbc.Row(dbc.Col(id="test-visual"), style={'padding':'20px'}),
+                    ], style={'width': '74%', 'display': 'inline-block'}
+                )
+            ]
+            )
 
 def register_callbacks(app):
-    """Takes input from frontend and send back the updated visual"""
+    """Takes input from frontend and sends back the updated visual"""
     @app.callback(
-        [
-        Output(component_id="testing-delta-table", component_property="children"),
-        Output(component_id="testing-price-volume", component_property="children"),
-        # Output(component_id="heatmap-visual", component_property="children"),
-        Output(component_id="qvalues-plot", component_property="children"),
-        ],
+        Output(component_id="test-visual", component_property="children"),
         [
         Input(component_id="test_dataset_name", component_property="value"),
+        Input(component_id="test_vis", component_property="value"),
+
         ],
     )
-    def make_table(dataset_name):
+    def make_table(dataset_name, visual):
         style_table = {
-            'borderBottom': '1px solid #222831',
-            'borderTop': '1px solid #222831',
-            'padding': '6px',
-            'borderRadius': '15px',
-            'overflow': 'hidden',
-            # 'fontWeight': 'bold'
+            'border':'1px solid',
+            'border-radius': 10, 
+            'backgroundColor':'#393E46'
         }
+        
+        # style={'margin':5}), style={'border':'1px solid', 'border-radius': 10, 'backgroundColor':'#393E46'})
         df = sd.get_data(dataset_name, 'Testing')
         output, i = [], 0
+        if visual == 'action-graphs':
+            
+            output.append(html.Div(dcc.Graph(id='price_v_volume' + str(i), figure=t_vls.price_v_volume(df), style={'margin':10}), style=style_table))
+            output.append(html.Div(dcc.Graph(id='qvalues_plot' + str(i), figure=t_vls.qvalues_plot(df), style={'margin':10}), style=style_table))
 
-        for vis in t_vls.get(df):
-            output.append(html.Div(dcc.Graph(id='avg_price_table' + str(i), figure=vis, style={'margin':5}), style={'border':'1px solid', 'border-radius': 10, 'backgroundColor':'#393E46'}))
-            i += 0
-        return output[0], output[1], output[2]
+        elif visual == 'test-heatmap':
+            output.append(html.Div(dcc.Graph(id='heatmap', figure = t_vls.heatmap(df), style={'margin':10}), style=style_table))
+            output.append(html.Div(dcc.Graph(id='median_state_table' + str(i), figure=t_vls.median_state_table(df),style={'margin':10}), style=style_table))
+
+        # elif visual == 'test-action-distribution':
+            # Ulan put visual in here with the above convention
+        return output

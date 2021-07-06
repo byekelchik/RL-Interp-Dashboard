@@ -5,10 +5,11 @@ import plotly.graph_objects as go
 from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
 from Visualization import colors
+import numpy as np
 
-def get(data):
 
-    '''Median state table'''
+def median_state_table(data):
+
     df = data
     output = []
     # restrcuture data by choice and episode
@@ -27,7 +28,7 @@ def get(data):
     bsh = pd.concat([buy.median().round(2).astype(str) + '%', sell.median().round(2).astype(str) + '%', hold.median().round(2).astype(str) + '%'])
 
     # create plotly table
-    fig1 = go.Figure(data=[go.Table(columnwidth = 1,
+    fig = go.Figure(data=[go.Table(columnwidth = 1,
     header=dict(height = 38, values=['Action', 'Price Delta', 'Volume Delta'],
             fill_color='#99A8B2',
             align='left'),
@@ -36,23 +37,24 @@ def get(data):
         align='left'))
     ])
 
-    fig1.update_layout(
+    fig.update_layout(
     title="Average State",
     height=300,
     paper_bgcolor='#393E46',
     plot_bgcolor='rgba(0,0,0,0)',
     font_color='#FFFFFF'
     )
-    output.append(fig1)
+    return fig
 
 
-    '''Price v Volume Graph'''
+def price_v_volume(data):
+    df = data
     colorsIdx = {'0': 'Hold', '1': 'Buy',
             '2': 'Sell'}
     cols = df['Choice'].map(colorsIdx)
-    fig2 = px.scatter(df, x="Price Delta", y="Volume Delta", color=colors.get_labels(df), color_discrete_map=colors.get_colors(df))
+    fig = px.scatter(df, x="Price Delta", y="Volume Delta", color=colors.get_labels(df), color_discrete_map=colors.get_colors(df))
 
-    fig2.update_layout(
+    fig.update_layout(
     title="B/S/H for Price/Volume Delta",
     xaxis_title="Price Delta",
     yaxis_title="Volume Delta",
@@ -62,28 +64,28 @@ def get(data):
     font_color='#FFFFFF'
     )
 
-    output.append(fig2)
+    return fig
 
-    '''Q-Values Plot'''
+def qvalues_plot(data):
     df = data[(data['Buy']!=-1) & (data['Sell']!=-1) & (data['Hold']!=-1)] # -1 is E-Greedy
 
-    fig3 = go.Figure(layout=go.Layout(
+    fig = go.Figure(layout=go.Layout(
             title=go.layout.Title(text="B/S/H Q-Values over time")
         ))
-    fig3.add_trace(go.Scatter(x=df['Date'], y=df['Buy'].astype(float),
+    fig.add_trace(go.Scatter(x=df['Date'], y=df['Buy'].astype(float),
                         mode='markers',
                         name='Buy',
                         line = dict(color='#01A6A4')))
-    fig3.add_trace(go.Scatter(x=df['Date'], y=df['Hold'].astype(float),
+    fig.add_trace(go.Scatter(x=df['Date'], y=df['Hold'].astype(float),
                         mode='markers',
                         name='Hold',
                         line = dict(color='#F2BE4A')))
-    fig3.add_trace(go.Scatter(x=df['Date'], y=df['Sell'].astype(float),
+    fig.add_trace(go.Scatter(x=df['Date'], y=df['Sell'].astype(float),
                         mode='markers',
                         name='Sell',
                         line = dict(color='#EC6355')))
 
-    fig3.update_layout(
+    fig.update_layout(
         title="B/S/H Q-Values Over Time",
         xaxis_title="Trading Days",
         yaxis_title="Q-Values",
@@ -91,5 +93,44 @@ def get(data):
         plot_bgcolor='rgba(0,0,0,0)',
         font_color='#FFFFFF'
     )
-    output.append(fig3)
-    return output
+    
+    return fig
+
+def heatmap(data):
+    i, j = 0, 0
+    x, y, columns = [], [], []
+
+    df = data # Never run with Testing
+
+    # get max and min values
+    price_min, price_max = min(df['Price Delta']), max(df['Price Delta'])
+    volume_min, volume_max = min(df['Volume Delta']), max(df['Volume Delta'])
+
+    # create bins with distribution as close to normal as possible
+    x = pd.cut(df['Price Delta'], retbins=True, bins=pd.interval_range(start=price_min-.1, end=price_max+.1, periods = 15))
+    y = pd.cut(df['Volume Delta'], retbins=True, bins=pd.interval_range(start=volume_min-1, end=volume_max+1, periods = 15))
+
+    # convert intervalindex to tuple for looping
+    x = x[1].to_tuples()
+    y = y[1].to_tuples()
+
+    # fill df with zeros to initialize 
+    new_df = pd.DataFrame(np.zeros(((len(y)-1, len(x)-1))))
+
+    # iterate through entire df and replace with action for the given price/volume delta
+    for i in range(1, len(x)):
+        for j in range(1, len(y)):
+            values = df['Choice'][(df['Price Delta'].astype(float).between(x[i-1][0], x[i][0], inclusive = True)) & (df['Volume Delta'].astype(float).between(y[j-1][0], y[j][0], inclusive = True))]
+            new_df[i-1][j-1] = values.median() if len(values) > 0 else -2
+
+    # create heatmap and return it
+    fig = go.Figure(go.Heatmap(z=new_df, x=x[1], y=y[1], colorscale=colors.get_colorscale()))
+    fig.update_layout(
+        title="Price v Volume Heatmap",
+        xaxis_title="Price Delta",
+        yaxis_title="Volume Delta",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
+    )
+    return fig
