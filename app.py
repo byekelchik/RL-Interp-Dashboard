@@ -8,6 +8,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from Visualization import inter_episode, intra_episode, testing
+import welcome
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI],suppress_callback_exceptions=True)
 
@@ -45,6 +46,10 @@ tab_layout = dbc.Container(
         html.Div(id="hidden-div", style={"display": "none"}),
         dcc.Tabs(
             children=[
+                    dcc.Tab(welcome.make_layout(),
+                    label='Welcome',
+                    style=tab_style, selected_style=tab_selected_style
+                ),
                     dcc.Tab(testing.make_layout(),
                     label='Testing',
                     style=tab_style, selected_style=tab_selected_style
