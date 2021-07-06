@@ -16,30 +16,41 @@ def heatmap(episode, data):
     columns = []
 
     df = data # Never run with Testing
-    df = df[(df['Episode'] == str(episode))]
+    df = df[(df['Episode'] == str(episode))] # choose the episode wanted for analysis
 
+    # get max and min values
     price_min, price_max = min(df['Price Delta']), max(df['Price Delta'])
     volume_min, volume_max = min(df['Volume Delta']), max(df['Volume Delta'])
 
+    # create bins with distribution as close to normal as possible
     x = pd.cut(df['Price Delta'], retbins=True, bins=pd.interval_range(start=price_min-.1, end=price_max+.1, periods = 15))
     y = pd.cut(df['Volume Delta'], retbins=True, bins=pd.interval_range(start=volume_min-1, end=volume_max+1, periods = 15))
+
+    # convert intervalindex to tuple for looping
     x = x[1].to_tuples()
     y = y[1].to_tuples()
 
+    # fill df with zeros to initialize 
     new_df = pd.DataFrame(np.zeros(((len(y)-1, len(x)-1))))
+
+    # iterate through entire df and replace with action for the given price/volume delta
     for i in range(1, len(x)):
         for j in range(1, len(y)):
             values = df['Choice'][(df['Price Delta'].astype(float).between(x[i-1][0], x[i][0], inclusive = True)) & (df['Volume Delta'].astype(float).between(y[j-1][0], y[j][0], inclusive = True))]
             new_df[i-1][j-1] = values.median() if len(values) > 0 else -2
 
+    # create heatmap and return it
     fig = go.Figure(go.Heatmap(z=new_df, x=x[1], y=y[1], colorscale=colors.get_colorscale()))
     fig.update_layout(
         title="Price v Volume Heatmap",
         xaxis_title="Price Delta",
-        yaxis_title="Volume Delta"
+        yaxis_title="Volume Delta",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
     )
-    
     return fig
+
 def price_v_volume(episodes, data):  # compare two datasets at a time
 
     output = []
@@ -53,7 +64,10 @@ def price_v_volume(episodes, data):  # compare two datasets at a time
         title="Episode "+str(episode)+": B/S/H for Price/Volume Delta",
         xaxis_title="Price Delta",
         yaxis_title="Volume Delta",
-        legend_title_text='Action'
+        legend_title_text='Action',
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
         )
 
         output.append(fig)
@@ -75,15 +89,17 @@ def two_way_table(episodes, data): # compare two datasets at a time
             temp = pd.merge(ep_one[['Date', 'Choice']][ep_one['Choice'] == str(c_x)], ep_two[['Date', 'Choice']][ep_two['Choice']== str(c_y)], on='Date', how='inner')
             twt_dataframe[v_x].iloc[c_y] = len(temp.index)
             total += len(temp.index)
-    #Heatmap version
-    # fig = px.imshow(twt_dataframe, labels=dict(x="Episode "+str(episodes[0]), y="Episode "+str(episodes[1]), color="Overlap"), color_continuous_scale=px.colors.sequential.Viridis)
-    # fig.update_xaxes(side="top")
-    fig = go.Figure(data=[go.Table(header=dict(height = 38, values=['', 'Hold', 'Buy', 'Sell'], fill_color='paleturquoise'),
-                cells=dict(height = 25, values=[twt_dataframe.index, twt_dataframe.Hold, twt_dataframe.Buy, twt_dataframe.Sell], fill_color='cornsilk'))
+
+    # create figure and return
+    fig = go.Figure(data=[go.Table(header=dict(height = 38, values=['', 'Hold', 'Buy', 'Sell'], fill_color='#99A8B2', align='left'),
+                cells=dict(height = 25, values=[twt_dataframe.index, twt_dataframe.Hold, twt_dataframe.Buy, twt_dataframe.Sell], fill_color='#393E46', align='left'))
                     ])
     fig.update_layout(
     title="Two-way Table: Episode " + str(episodes[0]) + ' x ' + "Episode " + str(episodes[1]),
-    height=300
+    height=300,
+    paper_bgcolor='#393E46',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font_color='#FFFFFF'
     )
     return fig
 
@@ -100,7 +116,7 @@ def average_state_table(episodes, data):
         buy = df[(df['Choice'] == '1') & (df['Episode'] == str(episode))]
         sell = df[(df['Choice'] == '2') & (df['Episode'] == str(episode))]
         hold = df[(df['Choice'] == '0') & (df['Episode'] == str(episode))]
-            # check to confirm non-empty dfs
+        # check to confirm non-empty dfs
         if len(hold.index) == 0:
             hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True)
         if len(sell.index) == 0:
@@ -112,16 +128,19 @@ def average_state_table(episodes, data):
         # create plotly table
         fig = go.Figure(data=[go.Table(columnwidth = 1,
         header=dict(height = 38, values=['Action', 'Price Delta', 'Volume Delta'],
-                    fill_color='paleturquoise',
+                    fill_color='#99A8B2',
                     align='left'),
         cells=dict(height = 25, values=[['Buy', 'Sell', 'Hold'], bsh['Price Delta'], bsh['Volume Delta']],
-                    fill_color='cornsilk',
+                    fill_color='#393E46',
                     align='left'))
         ])
 
         fig.update_layout(
         title="Episode "+str(episode),
-        height=300
+        height=300,
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
         )
 
         # add to output list to send to dash
@@ -159,18 +178,22 @@ def inter_state_delta_graph(episodes, data):
         fig = go.Figure(layout=go.Layout(
             title=go.layout.Title(text="Average Price State by Episode")
         ))
+        # add line and markers for buy values by episode
         fig.add_trace(go.Scatter(x=episodes, y=buy[state+' Delta'],
                         mode='lines+markers',
                         name='Buy',
                         line = dict(color='#01A6A4')))
+        # add line and markers for sell values by episode
         fig.add_trace(go.Scatter(x=episodes, y=sell[state+' Delta'],
                         mode='lines+markers',
                         name='Sell',
                         line = dict(color='#EC6355')))
+        # add line and markers for hold values by episode
         fig.add_trace(go.Scatter(x=episodes, y=hold[state+' Delta'],
                         mode='lines+markers',
                         name='Hold',
                         line = dict(color='#F2BE4A')))
+        # update axes and format interval
         fig.update_layout(
             xaxis = dict(
                 tickmode = 'linear',
@@ -179,7 +202,10 @@ def inter_state_delta_graph(episodes, data):
             ),
             title=state+" Delta by Episode",
             xaxis_title="Episode",
-            yaxis_title="% Change"
+            yaxis_title="% Change",
+            paper_bgcolor='#393E46',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#FFFFFF'
         )
         fig_output.append(fig)
 
@@ -195,14 +221,18 @@ def intra_state_delta_graph(episode, data):
 
     # plot a line for the specified number of episodes
     for state in ['Price', 'Volume']:
-
+        
+        # plot markers for state delta value by date
         fig= px.scatter(x=df['Date'], y=df[state+' Delta'], color=colors.get_labels(df), color_discrete_map=colors.get_colors(df))
 
         fig.update_layout(
             title="Episode " + str(episode) + ": Average "+state+" Delta",
             xaxis_title="Date",
             yaxis_title="% Change",
-            legend_title_text='Action'
+            legend_title_text='Action',
+            paper_bgcolor='#393E46',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#FFFFFF'
         )
         fig_output.append(fig)
 
@@ -240,16 +270,8 @@ def heatmap_visual(lower, upper, episode, data):
         xaxis_title="Trading Days",
         yaxis_title="Price USD"
     )
-    
 
     fig.show()
-
-# def price(episode, data):
-#     #price_data
-#     #output: show the user the price overtime
-#     df = data
-#     fig = px.line(df, x=df.index, y="Adj Close", title='Price Over Time')
-#     fig.show()
 
 def random_action_plot(episode, data):
     queryResult = data[data['Episode'] == str(episode)]
@@ -260,10 +282,11 @@ def random_action_plot(episode, data):
     non_greedy_days = queryResult.shape[0] - ep_greedy_days #subtract greedy days from total trading horizon
     pct_greedy = (ep_greedy_days)/queryResult.shape[0]
 
-    ###now plot pct_greedy and pct_non_greedy
+    # display count of greedy vs non-greedy days
     labels = ['Greedy', 'Non-Greedy']
     values = [ep_greedy_days, non_greedy_days]
 
+    # create pie chart
     fig = go.Figure(data=[go.Pie(labels=labels, values=values)])
 
     # enhance visual
@@ -272,38 +295,45 @@ def random_action_plot(episode, data):
                     marker=dict(colors=colors, line=dict(color='#000000', width=2)))
     fig.update_layout(
         title="Greedy vs. Non-greedy",
-        height=300
+        height=300,
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
     )
     return fig
 
 def qvalues_plot(episode, data):
 
-    queryResult = data
+    # get data only for given episode
+    data = data[data['Episode'] == str(episode)]
 
-    buy = queryResult[queryResult['Buy']!=-1]
-    sell = queryResult[queryResult['Sell']!=-1]
-    hold = queryResult[queryResult['Hold']!=-1]
-    df = pd.concat([buy, sell, hold]).drop_duplicates()
-
+    df = data[(data['Buy']!=str(-1)) & (data['Sell']!=str(-1)) & (data['Hold']!=str(-1))] # -1 is E-Greedy (remove them)
+    
     fig = go.Figure(layout=go.Layout(
             title=go.layout.Title(text="B/S/H Q-Values over time")
         ))
-    fig.add_trace(go.Scatter(x=df.index, y=df['Buy'],
+    fig.add_trace(go.Scatter(x=df['Date'], y=df['Buy'].astype(float),
                         mode='markers',
-                        name='Buy'))
-    fig.add_trace(go.Scatter(x=df.index, y=df['Hold'],
-                    mode='markers',
-                    name='Hold'))
-    fig.add_trace(go.Scatter(x=df.index, y=df['Sell'],
-                    mode='markers',
-                    name='Sell'))
+                        name='Buy',
+                        line = dict(color='#01A6A4')))
+    fig.add_trace(go.Scatter(x=df['Date'], y=df['Hold'].astype(float),
+                        mode='markers',
+                        name='Hold',
+                        line = dict(color='#F2BE4A')))
+    fig.add_trace(go.Scatter(x=df['Date'], y=df['Sell'].astype(float),
+                        mode='markers',
+                        name='Sell',
+                        line = dict(color='#EC6355')))
 
     fig.update_layout(
         title="B/S/H Q-Values Over Time",
         xaxis_title="Trading Days",
-        yaxis_title="Q-Values"
+        yaxis_title="Q-Values",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
     )
-    fig.show()
+    return fig
 
 """# Normality Tests for Visualization Data"""
 
@@ -356,6 +386,7 @@ def qq_plot(episodes, dataset_name, train_test, data):
 
         output.append(fig)
     return output
+
 # Shapiro-Wilk Test
 def shapiro_wilk(episodes, dataset_name, train_test, data):
     df = data
