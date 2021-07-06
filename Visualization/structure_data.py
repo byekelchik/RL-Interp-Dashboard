@@ -16,19 +16,20 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 def get_data(dataset_name, train_test):
     """Queries BigQuery table and structures the data for the visuals"""
 
+    # adjust data based on passed parameters
     if dataset_name == '2018':
         #GET THE DATA
         start = dt.datetime(2018, 1, 1)
         end = dt.datetime(2019, 1, 1)
 
-    else:
+    else: # 'covid'
         #GET THE DATA
         start = dt.datetime(2019, 1, 1)
         end = dt.datetime(2020, 1, 1)
 
     if train_test == 'Training':
         requested_query = "select * from `irlts-317602."+str(train_test)+".10eps_"+dataset_name+"` order by episode, date"
-    else:
+    else: # 'Testing'
         requested_query = "select * from `irlts-317602."+str(train_test)+".10eps_"+dataset_name+"` order by date"
 
     # resize data to match size from trading algorithm
@@ -76,9 +77,3 @@ def get_data(dataset_name, train_test):
 
     return query_result
 
-# def get_range(dataset_name, train_test):
-#     query = "select count(distinct episode) from `irlts-317602."+str(train_test)+".10eps_"+dataset_name+"` where episode != 'episode'"
-#     project_id = 'irlts-317602'
-#     query_result = pandas_gbq.read_gbq(query, project_id=project_id, progress_bar_type=None) # do not filter query by choice
-
-#     return query_result.iloc[0, 0]

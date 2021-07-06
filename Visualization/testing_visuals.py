@@ -6,15 +6,6 @@ from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
 from Visualization import colors
 
-# Helper function for heatmap visual
-def SetColor(x):
-    if x == 1:
-        return "green"
-    elif x == 0:
-        return "yellow"
-    elif x == 2:
-        return "red"
-
 def get(data):
 
     '''Median state table'''
@@ -38,16 +29,19 @@ def get(data):
     # create plotly table
     fig1 = go.Figure(data=[go.Table(columnwidth = 1,
     header=dict(height = 38, values=['Action', 'Price Delta', 'Volume Delta'],
-            fill_color='paleturquoise',
+            fill_color='#99A8B2',
             align='left'),
     cells=dict(height = 25, values=[['Buy', 'Sell', 'Hold'], bsh['Price Delta'], bsh['Volume Delta']],
-        fill_color='cornsilk',
+        fill_color='#393E46',
         align='left'))
     ])
 
     fig1.update_layout(
     title="Average State",
-    height=300
+    height=300,
+    paper_bgcolor='#393E46',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font_color='#FFFFFF'
     )
     output.append(fig1)
 
@@ -62,7 +56,10 @@ def get(data):
     title="B/S/H for Price/Volume Delta",
     xaxis_title="Price Delta",
     yaxis_title="Volume Delta",
-    legend_title_text="Action"
+    legend_title_text="Action",
+    paper_bgcolor='#393E46',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font_color='#FFFFFF'
     )
 
     output.append(fig2)
@@ -89,7 +86,10 @@ def get(data):
     fig3.update_layout(
         title="B/S/H Q-Values Over Time",
         xaxis_title="Trading Days",
-        yaxis_title="Q-Values"
+        yaxis_title="Q-Values",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
     )
     output.append(fig3)
     return output

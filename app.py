@@ -11,32 +11,60 @@ from Visualization import inter_episode, intra_episode, testing
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.YETI],suppress_callback_exceptions=True)
 
+tabs_styles = {
+    'height': '44px'
+}
+tab_style = {
+    'borderBottom': '1px solid #222831',
+    'borderTop': '1px solid #222831',
+    'padding': '6px',
+    'borderRadius': '30px',
+    'overflow': 'hidden',
+    'backgroundColor': '#393E46',
+    'color': '#ffd369',
+    'borderColor': '#393E46',
+    "margin-left": "4px"
+    # 'fontWeight': 'bold'
+}
+
+tab_selected_style = {
+    'borderTop': '1px solid #222831',
+    'borderBottom': '1px solid #222831',
+    'backgroundColor': '#ffd369',
+    'color': '#222831',
+    'padding': '6px',
+    'borderRadius': '30px',
+    'overflow': 'hidden',
+    "margin-left": "4px"
+}
+
 tab_layout = dbc.Container(
     [
-        html.Hr(),
-        html.H1("Interpretability Dashboard", style={'text-align': 'center'}), # Header
-        html.Hr(),
+        html.H1("Interpretability Dashboard", style={'color': '#ffd369', 'font': 'San Francisco font'}), # Header
         # Columns for side panel and the outputted graphs and tables
         html.Div(id="hidden-div", style={"display": "none"}),
         dcc.Tabs(
             children=[
                     dcc.Tab(testing.make_layout(),
                     label='Testing',
+                    style=tab_style, selected_style=tab_selected_style
                 ),
                     dcc.Tab(intra_episode.make_layout(),
-                    label='Intra-Episode'
+                    label='Intra-Episode',
+                    style=tab_style, selected_style=tab_selected_style
                 ),
                     dcc.Tab(inter_episode.make_layout(),
                     label='Inter-Episode',
+                    style=tab_style, selected_style=tab_selected_style
                 ),
-            ],
+            ], style=tabs_styles
         ),
 
     ],
     fluid=True,
 )
 
-app.layout = html.Div(children=[tab_layout])
+app.layout = html.Div(children=[tab_layout], style={'backgroundColor':'#222831'},)
 
 testing.register_callbacks(app)
 intra_episode.register_callbacks(app)
