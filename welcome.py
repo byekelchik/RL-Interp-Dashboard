@@ -2,6 +2,8 @@ import dash
 import dash_html_components
 import dash_core_components as dcc
 import dash_bootstrap_components
+import dash_html_components as html
+
 
 message = """
 
@@ -45,4 +47,14 @@ Throughout this app, trading actions are encoded as follows:
 
 """
 def make_layout():
-    return dcc.Markdown(message)
+
+    style_table = {
+            'borderBottom': '1px solid #222831',
+            'borderTop': '1px solid #222831',
+            'padding': '6px',
+            'borderRadius': '15px',
+            'overflow': 'hidden',
+            # 'fontWeight': 'bold'
+        }
+        
+    return html.Div(dcc.Markdown(message), style={'color': '#ffd369', 'font': 'San Francisco font'})
