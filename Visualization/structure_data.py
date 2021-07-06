@@ -11,7 +11,6 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # authorize google cloud connection
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/content/drive/MyDrive/Mountaintop2021/Google BQ Security/irlts-317602-7ed706ba79a2.json'
 
-
 # INPUT: SQL query string
 # OUTPUT: DataFrame holding returned query data
 def get_data(dataset_name, train_test):
@@ -75,5 +74,11 @@ def get_data(dataset_name, train_test):
     else:
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Price Delta', 'Volume Delta', 'Adj Close']
 
-
     return query_result
+
+# def get_range(dataset_name, train_test):
+#     query = "select count(distinct episode) from `irlts-317602."+str(train_test)+".10eps_"+dataset_name+"` where episode != 'episode'"
+#     project_id = 'irlts-317602'
+#     query_result = pandas_gbq.read_gbq(query, project_id=project_id, progress_bar_type=None) # do not filter query by choice
+
+#     return query_result.iloc[0, 0]

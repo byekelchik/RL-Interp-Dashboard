@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
+from Visualization import colors
 
 # Visualizations
 # Parameters:
@@ -17,10 +18,8 @@ def price_v_volume(episodes, data):  # compare two datasets at a time
     df = data
     for episode in episodes:
         df = df[df['Episode'] == str(episode)]
-        colors_id = {'0': 'Hold', '1': 'Buy',
-                    '2': 'Sell'}
-        cols = df['Choice'].map(colors_id)
-        fig = px.scatter(df, x="Price Delta", y="Volume Delta", color=cols)
+
+        fig = px.scatter(df, x="Price Delta", y="Volume Delta",color=colors.get_labels(df), color_discrete_map=colors.get_colors(df))
 
         fig.update_layout(
         title="Episode "+str(episode)+": B/S/H for Price/Volume Delta",
@@ -104,7 +103,7 @@ def average_state_table(episodes, data):
 
 # Average state(Price, Volume) graph
 # INPUT: specific episodes, name of dataset being used(COVID, 2018)
-def inter_average_price_graph(episodes, data):
+def inter_state_delta_graph(episodes, data):
 
     fig_output = []
     df = data
@@ -134,17 +133,25 @@ def inter_average_price_graph(episodes, data):
         ))
         fig.add_trace(go.Scatter(x=episodes, y=buy[state+' Delta'],
                         mode='lines+markers',
-                        name='Buy'))
+                        name='Buy',
+                        line = dict(color='#01A6A4')))
         fig.add_trace(go.Scatter(x=episodes, y=sell[state+' Delta'],
                         mode='lines+markers',
-                        name='Sell'))
+                        name='Sell',
+                        line = dict(color='#EC6355')))
         fig.add_trace(go.Scatter(x=episodes, y=hold[state+' Delta'],
                         mode='lines+markers',
-                        name='Hold'))
+                        name='Hold',
+                        line = dict(color='#F2BE4A')))
         fig.update_layout(
-        title=state+" Delta by Episode",
-        xaxis_title="Episode",
-        yaxis_title="% Change"
+            xaxis = dict(
+                tickmode = 'linear',
+                tick0 = 0,
+                dtick = 1
+            ),
+            title=state+" Delta by Episode",
+            xaxis_title="Episode",
+            yaxis_title="% Change"
         )
         fig_output.append(fig)
 
@@ -153,25 +160,17 @@ def inter_average_price_graph(episodes, data):
 
 # Average state(Price, Volume) graph
 # INPUT: specific episodes, name of dataset being used(COVID, 2018)
-def intra_average_price_graph(episode, data):
+def intra_state_delta_graph(episode, data):
 
     fig_output = []
     df = data[data['Episode'] == str(episode)]
 
     # plot a line for the specified number of episodes
     for state in ['Price', 'Volume']:
-        colors_id = {'0': 'Hold', '1': 'Buy',
-                    '2': 'Sell'}
-        cols = df['Choice'].map(colors_id)
 
-        fig= px.scatter(x=df['Date'], y=df[state+' Delta'], color = cols)
+        fig= px.scatter(x=df['Date'], y=df[state+' Delta'], color=colors.get_labels(df), color_discrete_map=colors.get_colors(df))
 
         fig.update_layout(
-            xaxis = dict(
-                tickmode = 'linear',
-                tick0 = 0,
-                dtick = 1
-            ),
             title="Episode " + str(episode) + ": Average "+state+" Delta",
             xaxis_title="Date",
             yaxis_title="% Change",

@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
+from Visualization import colors
 
 # Helper function for heatmap visual
 def SetColor(x):
@@ -15,6 +16,7 @@ def SetColor(x):
         return "red"
 
 def get(data):
+
     '''Median state table'''
     df = data
     output = []
@@ -54,7 +56,7 @@ def get(data):
     colorsIdx = {'0': 'Hold', '1': 'Buy',
             '2': 'Sell'}
     cols = df['Choice'].map(colorsIdx)
-    fig2 = px.scatter(df, x="Price Delta", y="Volume Delta", color=cols)
+    fig2 = px.scatter(df, x="Price Delta", y="Volume Delta", color=colors.get_labels(df), color_discrete_map=colors.get_colors(df))
 
     fig2.update_layout(
     title="B/S/H for Price/Volume Delta",
@@ -73,13 +75,16 @@ def get(data):
         ))
     fig3.add_trace(go.Scatter(x=df['Date'], y=df['Buy'].astype(float),
                         mode='markers',
-                        name='Buy'))
+                        name='Buy',
+                        line = dict(color='#01A6A4')))
     fig3.add_trace(go.Scatter(x=df['Date'], y=df['Hold'].astype(float),
-                    mode='markers',
-                    name='Hold'))
+                        mode='markers',
+                        name='Hold',
+                        line = dict(color='#F2BE4A')))
     fig3.add_trace(go.Scatter(x=df['Date'], y=df['Sell'].astype(float),
-                    mode='markers',
-                    name='Sell'))
+                        mode='markers',
+                        name='Sell',
+                        line = dict(color='#EC6355')))
 
     fig3.update_layout(
         title="B/S/H Q-Values Over Time",
