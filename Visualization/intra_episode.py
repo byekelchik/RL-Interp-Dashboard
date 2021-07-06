@@ -82,7 +82,7 @@ def register_callbacks(app):
             output.append(dcc.Graph(id='average-state-table', figure=vls.average_state_table([episode], df)[0]))
             output.append(dcc.Graph(id='greedy-pie-chart', figure = vls.random_action_plot(episode, df)))
         elif visual == 'state-delta-graph':
-            for vis in vls.intra_average_price_graph(episode, df):
+            for vis in vls.intra_state_delta_graph(episode, df):
                 output.append(dcc.Graph(id='average-state-graph'+str(i), figure = vis))
                 i+=1
         return output

@@ -7,8 +7,10 @@ from dash.dependencies import Input, Output
 from Visualization import structure_data as sd
 from Visualization import visuals as vls
 
+inter_range = 0
 def make_layout():
     """Creates layout for visualization"""
+    # get the range of episodes
     # Columns for side panel and the outputted graphs and tables
     return dbc.Row(
         [
@@ -60,7 +62,8 @@ def make_layout():
                                 marks= {i:str(i) for i in range(11)},
                                 value=2
                             )
-                    ]),
+                        ]
+                    ),
         ],
         body=True,
     )),
@@ -69,9 +72,9 @@ def make_layout():
     )
 
 def register_callbacks(app):
-    """Takes input from frontend and sends back the updated visual"""
-    @app.callback(
 
+    @app.callback(
+        
             Output(component_id="chosen-visual", component_property="children"),
 
         [
@@ -91,7 +94,7 @@ def register_callbacks(app):
 
         if visual == 'state-delta-graph':
             # Get a figure for each passed parameter
-            for vis in vls.inter_average_price_graph(graph_episodes, df):
+            for vis in vls.inter_state_delta_graph(graph_episodes, df):
                 output.append(dcc.Graph(id='avg_price_graph'+str(i), figure=vis))
                 i += 1
         elif visual == 'tw-table':
@@ -103,4 +106,5 @@ def register_callbacks(app):
             for vis in vls.price_v_volume(graph_episodes, df):
                 output.append(dcc.Graph(id='price_v_volume'+str(i), figure=vis))
                 i += 1
+                
         return output

@@ -1,6 +1,5 @@
 """This is the main frontend module"""
 # 1. List the proper number or episodes on sidebar, ulan
-# 5. Whole numbers only, ulan
 # 8. keep B/S/H constant colors, use color.py(maybe)
 
 
