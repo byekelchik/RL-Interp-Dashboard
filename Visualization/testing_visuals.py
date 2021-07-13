@@ -134,3 +134,141 @@ def heatmap(data):
         font_color='#FFFFFF'
     )
     return fig
+
+def buy_v_pricedelta(data): 
+
+    df = data 
+    buy = df[(df['Choice'] == '1')]     
+    fig = px.histogram(buy, x="Price Delta") 
+
+    fig.update_layout(
+        yaxis = dict(
+                tickmode = 'linear',
+                tick0 = 0,
+                dtick = 1
+            ),
+        title="Price Delta v Buy Action Histogram",
+        xaxis_title="Price Delta",
+        yaxis_title="Buy",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
+    )
+
+    return fig
+
+def sell_v_pricedelta(data): 
+
+    df = data 
+    sell = df[(df['Choice'] == '2')]    
+    fig = px.histogram(sell, x="Price Delta") 
+
+    fig.update_layout(
+        yaxis = dict(
+                tickmode = 'linear',
+                tick0 = 0,
+                dtick = 1
+            ),
+        title="Price Delta v Sell Action Histogram",
+        xaxis_title="Price Delta",
+        yaxis_title="Sell",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
+    )
+    
+    return fig
+
+def hold_v_pricedelta(data): 
+
+    df = data 
+    hold = df[(df['Choice'] == '0')]     
+    fig = px.histogram(hold, x="Price Delta") 
+
+    fig.update_layout(
+        yaxis = dict(
+                tickmode = 'linear',
+                tick0 = 0,
+                dtick = 1
+            ),
+        title="Price Delta v Hold Action Histogram",
+        xaxis_title="Price Delta",
+        yaxis_title="Hold",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
+    )
+    
+    return fig
+
+def buy_v_volumedelta(data): 
+
+    df = data 
+    buy = df[(df['Choice'] == '1')]     
+    fig = px.histogram(buy, x="Volume Delta") 
+
+    fig.update_layout(
+        yaxis = dict(
+                tickmode = 'linear',
+                tick0 = 0,
+                dtick = 1
+            ),
+        title="Volume Delta v Buy Action Histogram",
+        xaxis_title="Volume Delta",
+        yaxis_title="Buy",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
+    )
+
+    return fig
+
+def sell_v_volumedelta(data): 
+
+    df = data 
+    sell = df[(df['Choice'] == '2')]    
+    fig = px.histogram(sell, x="Volume Delta") 
+
+    fig.update_layout(
+        yaxis = dict(
+                tickmode = 'linear',
+                tick0 = 0,
+                dtick = 1
+            ),
+        title="Volume Delta v Sell Action Histogram",
+        xaxis_title="Volume Delta",
+        yaxis_title="Sell",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
+    )
+    
+    return fig
+
+def hold_v_volumedelta(data): 
+
+    df = data 
+    hold = df[(df['Choice'] == '0')]     
+    fig = px.histogram(hold, x="Volume Delta") 
+
+    fig.update_layout(
+        yaxis = dict(
+                tickmode = 'linear',
+                tick0 = 0,
+                dtick = 1
+            ),
+        title="Volume Delta v Hold Action Histogram",
+        xaxis_title="Volume Delta",
+        yaxis_title="Hold",
+        paper_bgcolor='#393E46',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#FFFFFF'
+    )
+    
+    return fig
+    
+
+
+
+
+
