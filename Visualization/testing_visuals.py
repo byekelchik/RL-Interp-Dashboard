@@ -135,137 +135,34 @@ def heatmap(data):
     )
     return fig
 
-def buy_v_pricedelta(data): 
+def action_v_state_histogram(data): 
 
     df = data 
-    buy = df[(df['Choice'] == '1')]     
-    fig = px.histogram(buy, x="Price Delta") 
+    output = []
+    for state in ["Price", "Volume"]:
+        for value, action in enumerate(["Buy", "Hold", "Sell"]):
+            hist_data = df[(df['Choice'] == str(value))]
+            if len(hist_data.index) == 0:
+                continue   
+            fig = px.histogram(hist_data, x=(state+" Delta"))
+            
 
-    fig.update_layout(
-        yaxis = dict(
-                tickmode = 'linear',
-                tick0 = 0,
-                dtick = 1
-            ),
-        title="Price Delta v Buy Action Histogram",
-        xaxis_title="Price Delta",
-        yaxis_title="Buy",
-        paper_bgcolor='#393E46',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#FFFFFF'
-    )
+            fig.update_layout(
+                yaxis = dict(
+                        tickmode = 'linear',
+                        tick0 = 0,
+                        dtick = 1
+                    ),
+                title=state+" Delta v " +  str(action) + " Histogram",
+                xaxis_title=state+" Delta",
+                yaxis_title=action,
+                paper_bgcolor='#393E46',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font_color='#FFFFFF'
+            )
+            output.append(fig)
 
-    return fig
-
-def sell_v_pricedelta(data): 
-
-    df = data 
-    sell = df[(df['Choice'] == '2')]    
-    fig = px.histogram(sell, x="Price Delta") 
-
-    fig.update_layout(
-        yaxis = dict(
-                tickmode = 'linear',
-                tick0 = 0,
-                dtick = 1
-            ),
-        title="Price Delta v Sell Action Histogram",
-        xaxis_title="Price Delta",
-        yaxis_title="Sell",
-        paper_bgcolor='#393E46',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#FFFFFF'
-    )
-    
-    return fig
-
-def hold_v_pricedelta(data): 
-
-    df = data 
-    hold = df[(df['Choice'] == '0')]     
-    fig = px.histogram(hold, x="Price Delta") 
-
-    fig.update_layout(
-        yaxis = dict(
-                tickmode = 'linear',
-                tick0 = 0,
-                dtick = 1
-            ),
-        title="Price Delta v Hold Action Histogram",
-        xaxis_title="Price Delta",
-        yaxis_title="Hold",
-        paper_bgcolor='#393E46',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#FFFFFF'
-    )
-    
-    return fig
-
-def buy_v_volumedelta(data): 
-
-    df = data 
-    buy = df[(df['Choice'] == '1')]     
-    fig = px.histogram(buy, x="Volume Delta") 
-
-    fig.update_layout(
-        yaxis = dict(
-                tickmode = 'linear',
-                tick0 = 0,
-                dtick = 1
-            ),
-        title="Volume Delta v Buy Action Histogram",
-        xaxis_title="Volume Delta",
-        yaxis_title="Buy",
-        paper_bgcolor='#393E46',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#FFFFFF'
-    )
-
-    return fig
-
-def sell_v_volumedelta(data): 
-
-    df = data 
-    sell = df[(df['Choice'] == '2')]    
-    fig = px.histogram(sell, x="Volume Delta") 
-
-    fig.update_layout(
-        yaxis = dict(
-                tickmode = 'linear',
-                tick0 = 0,
-                dtick = 1
-            ),
-        title="Volume Delta v Sell Action Histogram",
-        xaxis_title="Volume Delta",
-        yaxis_title="Sell",
-        paper_bgcolor='#393E46',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#FFFFFF'
-    )
-    
-    return fig
-
-def hold_v_volumedelta(data): 
-
-    df = data 
-    hold = df[(df['Choice'] == '0')]     
-    fig = px.histogram(hold, x="Volume Delta") 
-
-    fig.update_layout(
-        yaxis = dict(
-                tickmode = 'linear',
-                tick0 = 0,
-                dtick = 1
-            ),
-        title="Volume Delta v Hold Action Histogram",
-        xaxis_title="Volume Delta",
-        yaxis_title="Hold",
-        paper_bgcolor='#393E46',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#FFFFFF'
-    )
-    
-    return fig
+    return output
     
 
 

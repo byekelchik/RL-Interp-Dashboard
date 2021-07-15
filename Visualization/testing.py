@@ -78,18 +78,7 @@ def register_callbacks(app):
             output.append(html.Div(dcc.Graph(id='median_state_table' + str(i), figure=t_vls.median_state_table(df),style={'margin':10}), style=style_table))
 
         elif visual == 'test-action-distribution': 
-            if dataset_name == '2018': 
-                output.append(html.Div(dcc.Graph(id='buy_v_pricedelta', figure=t_vls.buy_v_pricedelta(df), style={'margin':10}), style=style_table))
-                output.append(html.Div(dcc.Graph(id='sell_v_pricedelta', figure=t_vls.sell_v_pricedelta(df), style={'margin':10}), style=style_table))
-                output.append(html.Div(dcc.Graph(id='buy_v_volumedelta', figure=t_vls.buy_v_volumedelta(df), style={'margin':10}), style=style_table))
-                output.append(html.Div(dcc.Graph(id='sell_v_volumedelta', figure=t_vls.sell_v_volumedelta(df), style={'margin':10}), style=style_table))
-            elif dataset_name == "covid": 
-                output.append(html.Div(dcc.Graph(id='sell_v_pricedelta', figure=t_vls.sell_v_pricedelta(df), style={'margin':10}), style=style_table))
-                output.append(html.Div(dcc.Graph(id='hold_v_pricedelta', figure=t_vls.hold_v_pricedelta(df), style={'margin':10}), style=style_table))
-                output.append(html.Div(dcc.Graph(id='sell_v_volumedelta', figure=t_vls.sell_v_volumedelta(df), style={'margin':10}), style=style_table))
-                output.append(html.Div(dcc.Graph(id='hold_v_volumedelta', figure=t_vls.hold_v_volumedelta(df), style={'margin':10}), style=style_table))
+                for i, vis in enumerate(t_vls.action_v_state_histogram(df)):
+                    output.append(html.Div(dcc.Graph(id='state_v_action_hist'+str(i), figure=vis, style={'margin':10}), style=style_table))
 
-
-        # elif visual == 'test-action-distribution':
-            # Ulan put visual in here with the above convention
         return output
