@@ -21,7 +21,10 @@ def get_data(dataset_name, train_test):
         #GET THE DATA
         start = dt.datetime(2018, 1, 1)
         end = dt.datetime(2019, 1, 1)
-
+    elif dataset_name == '2017': # '2017'
+        #GET THE DATA
+        start = dt.datetime(2017, 1, 1)
+        end = dt.datetime(2018, 1, 1)
     else: # 'covid'
         #GET THE DATA
         start = dt.datetime(2019, 1, 1)
@@ -61,14 +64,18 @@ def get_data(dataset_name, train_test):
     query_result = query_result.iloc[4:]
     query_result['Date'] = pd.to_datetime(query_result['Date'], errors='coerce')
 
-
+    
     # join all data
+    
     query_result = query_result.join(daily_pricedelta, on='Date', how='inner')
     query_result = query_result.join(daily_volumedelta, on='Date', how='inner')
+    
     if train_test == 'Training':
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta']
     else:
+        
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Price Delta', 'Volume Delta']
+        
     query_result = query_result.join(price_data, on='Date', how='inner')
     if train_test == 'Training':
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta', 'Adj Close']

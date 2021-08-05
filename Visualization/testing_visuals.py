@@ -8,15 +8,22 @@ from Visualization import colors
 import numpy as np
 
 
-def median_state_table(data):
+def median_state_table(data, dataset_name):
 
     df = data
+    synthetic_df = pd.read_csv("filled_df_20bins_" + str(dataset_name) + ".csv")
+    synthetic_df['Choice'] = synthetic_df['Choice'].astype(int)
+    # synthetic_df['Choice'] = synthetic_df['Choice'].to_string()
+    df = df.append(synthetic_df[['Price Delta', 'Volume Delta', 'Choice']], ignore_index=True)
     output = []
-    # restrcuture data by choice and episode
+    # restrcuture data by choice
     buy = df[df['Choice'] == '1']
+    buy = buy.append(df[df['Choice'] == 1])
     sell = df[df['Choice'] == '2']
+    sell = sell.append(df[df['Choice'] == 2])
     hold = df[df['Choice'] == '0']
-
+    hold = hold.append(df[df['Choice'] == 0])
+    
     # check to confirm non-empty dfs
     if len(hold.index) == 0:
         hold = hold.append(pd.Series(0, index=df.columns), ignore_index=True)
@@ -95,20 +102,25 @@ def qvalues_plot(data):
     )
     
     return fig
-
-def heatmap(data):
+    
+def heatmap(data, p1, p2, dataset_name):
     i, j = 0, 0
     x, y, columns = [], [], []
 
     df = data # Never run with Testing
+    synthetic_df = pd.read_csv("filled_df_20bins_" + str(dataset_name) + ".csv")
+    # synthetic_df = pd.read_csv("filled_df_20bins_corrected.csv")
+
+    synthetic_df['Choice'] = synthetic_df['Choice'].astype(int)
+    df = df.append(synthetic_df[['Price Delta', 'Volume Delta', 'Choice']], ignore_index=True)
 
     # get max and min values
     price_min, price_max = min(df['Price Delta']), max(df['Price Delta'])
     volume_min, volume_max = min(df['Volume Delta']), max(df['Volume Delta'])
 
     # create bins with distribution as close to normal as possible
-    x = pd.cut(df['Price Delta'], retbins=True, bins=pd.interval_range(start=price_min-.1, end=price_max+.1, periods = 15))
-    y = pd.cut(df['Volume Delta'], retbins=True, bins=pd.interval_range(start=volume_min-1, end=volume_max+1, periods = 15))
+    x = pd.cut(df['Price Delta'], retbins=True, bins=pd.interval_range(start=price_min, end=price_max, periods = p1))
+    y = pd.cut(df['Volume Delta'], retbins=True, bins=pd.interval_range(start=volume_min, end=volume_max, periods = p2))
 
     # convert intervalindex to tuple for looping
     x = x[1].to_tuples()
@@ -155,7 +167,7 @@ def action_v_state_histogram(data):
                     ),
                 title=state+" Delta v " +  str(action) + " Histogram",
                 xaxis_title=state+" Delta",
-                yaxis_title=action,
+                yaxis_title="Frequency",
                 paper_bgcolor='#393E46',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font_color='#FFFFFF'

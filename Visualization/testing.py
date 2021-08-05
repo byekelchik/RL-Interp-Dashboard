@@ -32,9 +32,33 @@ def make_layout():
                                     id="test_dataset_name",
                                     options=[
                                         {"label": '2018', "value": '2018'},
-                                        {"label": 'COVID', "value": 'covid'}
+                                        {"label": 'COVID', "value": 'covid'},
+                                        {"label": '2017', "value": '2017'}
                                     ],
                                     value='2018',
+                                ),
+                                dbc.FormGroup(
+                                    [
+                                        # slider to change episode range in dataset
+                                        dbc.Label("Number of Price Bins:", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                                        dcc.Slider(
+                                            id="Price",
+                                            min=15,
+                                            max=20,
+                                            step=None,
+                                            marks={i:str(i) for i in range(15, 21)},
+                                            value=20
+                                        ),
+                                        dbc.Label("Number of Volume Bins:", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                                        dcc.Slider(
+                                            id="Volume",
+                                            min=15,
+                                            max=20,
+                                            step=None,
+                                            marks= {i:str(i) for i in range(15, 21)},
+                                            value=20
+                                        )
+                                    ]
                                 ),
                             ],style={'backgroundColor': '#222831', 'height':'120vh','padding': 20},#, 'height':'100vh'
                         
@@ -55,10 +79,12 @@ def register_callbacks(app):
         [
         Input(component_id="test_dataset_name", component_property="value"),
         Input(component_id="test_vis", component_property="value"),
+        Input(component_id="Price", component_property="value"),
+        Input(component_id="Volume", component_property="value"),
 
         ],
     )
-    def make_table(dataset_name, visual):
+    def make_table(dataset_name, visual, Price, Volume):
         style_table = {
             'border':'1px solid',
             'border-radius': 10, 
@@ -70,15 +96,16 @@ def register_callbacks(app):
         output, i = [], 0
         if visual == 'action-graphs':
             
-            output.append(html.Div(dcc.Graph(id='price_v_volume' + str(i), figure=t_vls.price_v_volume(df), style={'margin':10}), style=style_table))
             output.append(html.Div(dcc.Graph(id='qvalues_plot' + str(i), figure=t_vls.qvalues_plot(df), style={'margin':10}), style=style_table))
 
         elif visual == 'test-heatmap':
-            output.append(html.Div(dcc.Graph(id='heatmap', figure = t_vls.heatmap(df), style={'margin':10}), style=style_table))
-            output.append(html.Div(dcc.Graph(id='median_state_table' + str(i), figure=t_vls.median_state_table(df),style={'margin':10}), style=style_table))
+            output.append(html.Div(dcc.Graph(id='heatmap', figure = t_vls.heatmap(df, Price, Volume, dataset_name), style={'margin':10}), style=style_table))
+            output.append(html.Div(dcc.Graph(id='median_state_table' + str(i), figure=t_vls.median_state_table(df, dataset_name),style={'margin':10}), style=style_table))
 
         elif visual == 'test-action-distribution': 
                 for i, vis in enumerate(t_vls.action_v_state_histogram(df)):
                     output.append(html.Div(dcc.Graph(id='state_v_action_hist'+str(i), figure=vis, style={'margin':10}), style=style_table))
 
         return output
+
+
