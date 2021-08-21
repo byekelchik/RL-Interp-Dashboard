@@ -7,8 +7,7 @@ from scipy.stats import shapiro
 from statsmodels.graphics.gofplots import qqplot
 from Visualization import colors
 
-# BEAR: define this
-# BULL: define this
+# not operational right now, focusing on testing
 def heatmap(episode, data):
     graphs = []
     i, j = 0, 0

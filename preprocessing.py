@@ -1,3 +1,5 @@
+import get_synthetic_heatmap_data as syn
+
 def main_data_pipeline():
     
     # USING CSV FOR NOW, GCP WILL TAKE MORE TIME(POSSIBLY MUCH MORE IDK)
@@ -15,4 +17,4 @@ def main_data_pipeline():
     #     - send output to the alg, but correct the parameters to only include the ones necessary for synthetic data
     # Testing: 
     #     - output correctly labeled data to the dash app directory
-    
+    pass

@@ -60,19 +60,7 @@ def heatmap(data):
 
     return output
 heatmap(sd.get_data('2018', 'Testing'))
-# np.random.seed(0)
-# vals = np.random.random((10, 2))
-# min_max_scaler = MinMaxScaler((0,1))
-# # min_max_scaler.fit(vals)
-# scale_output = min_max_scaler.fit_transform(vals)
-# scale_df = pd.DataFrame(scale_output).diff()
-# print("Scale df")
-# print(scale_df)
-# vals_df = pd.DataFrame(vals).diff()
 
-# vals_output = min_max_scaler.fit_transform(vals_df)
-# print("Vals df")
-# print(vals_df)
 
 
 

@@ -24,9 +24,9 @@ def make_layout():
                                         {"label": 'Heatmap', "value": 'test-heatmap'},
                                         {"label": 'Action Distribution', "value": 'test-action-distribution'},
                                     ],
-                                    value='action-graphs', # initial value in dropdown
+                                    value='test-heatmap', # initial value in dropdown
                                 ),
-                                dbc.Label("Dataset", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                                dbc.Label("Year", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
                                 dcc.Dropdown(
                                     
                                     id="test_dataset_name",
@@ -35,7 +35,18 @@ def make_layout():
                                         {"label": 'COVID', "value": 'covid'},
                                         {"label": '2017', "value": '2017'}
                                     ],
-                                    value='2018',
+                                    value='2017',
+                                ),
+                                dbc.Label("Dataset", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                                dcc.Dropdown(
+                                    
+                                    id="table_name_test",
+                                    options=[
+                                        {"label": '1 Hidden Layer(2017 Only)', "value": '1layer_default'},
+                                        {"label": '2 Hidden Layers(2017 Only)', "value": '2layer_default'},
+                                        {"label": 'Default (No Heatmap)', "value": '10eps_default'},
+                                    ],
+                                    value='1layer_default',
                                 ),
                                 dbc.FormGroup(
                                     [
@@ -78,13 +89,15 @@ def register_callbacks(app):
         Output(component_id="test-visual", component_property="children"),
         [
         Input(component_id="test_dataset_name", component_property="value"),
+        Input(component_id="table_name_test", component_property="value"),
         Input(component_id="test_vis", component_property="value"),
         Input(component_id="Price", component_property="value"),
         Input(component_id="Volume", component_property="value"),
 
         ],
+        # prevent_initial_call=True
     )
-    def make_table(dataset_name, visual, Price, Volume):
+    def make_table(dataset_name, table_name, visual, Price, Volume):
         style_table = {
             'border':'1px solid',
             'border-radius': 10, 
@@ -92,15 +105,15 @@ def register_callbacks(app):
         }
         
         # style={'margin':5}), style={'border':'1px solid', 'border-radius': 10, 'backgroundColor':'#393E46'})
-        df = sd.get_data(dataset_name, 'Testing')
+        df = sd.get_data(dataset_name, table_name)
         output, i = [], 0
         if visual == 'action-graphs':
             
             output.append(html.Div(dcc.Graph(id='qvalues_plot' + str(i), figure=t_vls.qvalues_plot(df), style={'margin':10}), style=style_table))
 
         elif visual == 'test-heatmap':
-            output.append(html.Div(dcc.Graph(id='heatmap', figure = t_vls.heatmap(df, Price, Volume, dataset_name), style={'margin':10}), style=style_table))
-            output.append(html.Div(dcc.Graph(id='median_state_table' + str(i), figure=t_vls.median_state_table(df, dataset_name),style={'margin':10}), style=style_table))
+            output.append(html.Div(dcc.Graph(id='heatmap', figure = t_vls.heatmap(df, Price, Volume, dataset_name, table_name), style={'margin':10}), style=style_table))
+            output.append(html.Div(dcc.Graph(id='median_state_table' + str(i), figure=t_vls.median_state_table(df, dataset_name, table_name),style={'margin':10}), style=style_table))
 
         elif visual == 'test-action-distribution': 
                 for i, vis in enumerate(t_vls.action_v_state_histogram(df)):

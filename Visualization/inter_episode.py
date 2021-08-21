@@ -28,14 +28,14 @@ def make_layout():
                                     {"label": 'State Delta Graph', "value": 'state-delta-graph'},
                                     {"label": 'B/S/H for Price/Volume Delta', "value": 'price-volume'},
                                 ],
-                                value='tw-table', # initial value in dropdown
+                                # value='tw-table', # initial value in dropdown
                             ),
                         ]
                     ),
                     dbc.FormGroup(
                         [
                             # dropdown for choosing the dataset
-                            dbc.Label("Dataset", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                            dbc.Label("Year", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
                             dcc.Dropdown(
                                 id="t1_dataset_name",
                                 options=[
@@ -46,6 +46,15 @@ def make_layout():
                             ),
                         ]
                     ),
+                            dbc.Label("Dataset", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                            dcc.Dropdown(
+                                
+                                id="table_name_inter",
+                                options=[
+                                    {"label": 'Default', "value": '10eps_default_training'},
+                                ],
+                                value='10eps_default_training',
+                            ),
                     dbc.FormGroup(
                         [
                             # slider to change episode range in dataset
@@ -85,14 +94,15 @@ def register_callbacks(app):
             Input(component_id="episode1", component_property="value"),
             Input(component_id="episode2", component_property="value"),
             Input(component_id="t1_dataset_name", component_property="value"),
+            Input(component_id="table_name_inter", component_property="value"),
             Input(component_id="inter_vis", component_property="value"),
-        ],
+        ], prevent_initial_call=True
     )
-    def make_visuals(episode1, episode2, dataset_name, visual):
+    def make_visuals(episode1, episode2, dataset_name, table_name, visual):
         '''Takes input from the callback and returns the visual for the output'''
         output = []
         i = 0
-        df = sd.get_data(dataset_name, 'Training') # Never run with Testing
+        df = sd.get_data(dataset_name, table_name) # Never run with Testing
         # Get a figure for each passed parameter
         episodes = [episode1, episode2]
         graph_episodes = list(range(episode1, episode2+1))

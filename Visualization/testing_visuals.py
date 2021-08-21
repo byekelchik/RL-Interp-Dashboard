@@ -8,10 +8,10 @@ from Visualization import colors
 import numpy as np
 
 
-def median_state_table(data, dataset_name):
+def median_state_table(data, dataset_name, table_name):
 
     df = data
-    synthetic_df = pd.read_csv("filled_df_20bins_" + str(dataset_name) + ".csv")
+    synthetic_df = pd.read_csv("jupyter/2017/saved_models/"+table_name+"/heatmap_data_"+table_name+".csv")
     synthetic_df['Choice'] = synthetic_df['Choice'].astype(int)
     # synthetic_df['Choice'] = synthetic_df['Choice'].to_string()
     df = df.append(synthetic_df[['Price Delta', 'Volume Delta', 'Choice']], ignore_index=True)
@@ -103,12 +103,12 @@ def qvalues_plot(data):
     
     return fig
     
-def heatmap(data, p1, p2, dataset_name):
+def heatmap(data, p1, p2, dataset_name, table_name):
     i, j = 0, 0
     x, y, columns = [], [], []
 
     df = data # Never run with Testing
-    synthetic_df = pd.read_csv("filled_df_20bins_" + str(dataset_name) + ".csv")
+    synthetic_df = pd.read_csv("jupyter/2017/saved_models/"+table_name+"/heatmap_data_"+table_name+".csv")
     # synthetic_df = pd.read_csv("filled_df_20bins_corrected.csv")
 
     synthetic_df['Choice'] = synthetic_df['Choice'].astype(int)

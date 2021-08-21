@@ -13,29 +13,24 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # INPUT: SQL query string
 # OUTPUT: DataFrame holding returned query data
-def get_data(dataset_name, train_test):
+def get_data(dataset_name, table_name):
     """Queries BigQuery table and structures the data for the visuals"""
 
-    # adjust data based on passed parameters
-    if dataset_name == '2018':
-        #GET THE DATA
-        start = dt.datetime(2018, 1, 1)
-        end = dt.datetime(2019, 1, 1)
-    elif dataset_name == '2017': # '2017'
-        #GET THE DATA
-        start = dt.datetime(2017, 1, 1)
-        end = dt.datetime(2018, 1, 1)
-    else: # 'covid'
-        #GET THE DATA
-        start = dt.datetime(2019, 1, 1)
-        end = dt.datetime(2020, 1, 1)
-
-    if train_test == 'Training':
-        requested_query = "select * from `irlts-317602."+str(train_test)+".10eps_"+dataset_name+"` order by episode, date"
+    if 'training' in table_name:
+        requested_query = "select * from `irlts-317602."+dataset_name+"."+table_name+"` order by episode, date"
     else: # 'Testing'
-        requested_query = "select * from `irlts-317602."+str(train_test)+".10eps_"+dataset_name+"` order by date"
+        requested_query = "select * from `irlts-317602."+dataset_name+"."+table_name+"` order by date"
+
+    # connect to BigQuery table and execute query
+    project_id = 'irlts-317602'
+    query_result = pandas_gbq.read_gbq(requested_query, project_id=project_id, progress_bar_type=None) # do not filter query by choice
 
     # resize data to match size from trading algorithm
+    start = query_result['Date'].iloc[0]
+    end = query_result['Date'].iloc[-2]
+
+    start = dt.datetime(int(start[0:4]), int(start[5:7]), int(start[8:]))
+    end = dt.datetime(int(end[0:4]), int(end[5:7]), int(end[8:]))
     dataset = yf.download('VOO',start=start,end=end, interval='1d')
     yf_dataframe = pd.DataFrame(dataset)
     validation_size = 0.2
@@ -56,31 +51,23 @@ def get_data(dataset_name, train_test):
     daily_volumedelta = volume_data.pct_change()*100 # daily % change * 100 = raw delta
     daily_volumedelta = daily_volumedelta.iloc[1:]
 
-    # connect to BigQuery table and execute query
-    project_id = 'irlts-317602'
-    query_result = pandas_gbq.read_gbq(requested_query, project_id=project_id, progress_bar_type=None) # do not filter query by choice
-
     # reformat 'Date' to datetime
     query_result = query_result.iloc[4:]
     query_result['Date'] = pd.to_datetime(query_result['Date'], errors='coerce')
 
-    
     # join all data
-    
     query_result = query_result.join(daily_pricedelta, on='Date', how='inner')
     query_result = query_result.join(daily_volumedelta, on='Date', how='inner')
     
-    if train_test == 'Training':
+    if 'training' in table_name:
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta']
     else:
-        
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Price Delta', 'Volume Delta']
-        
+    print(query_result)
     query_result = query_result.join(price_data, on='Date', how='inner')
-    if train_test == 'Training':
+
+    if 'training' in table_name:
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Episode','Price Delta', 'Volume Delta', 'Adj Close']
     else:
         query_result.columns = ['Date', 'Hold', 'Buy', 'Sell', 'Choice', 'Price Delta', 'Volume Delta', 'Adj Close']
-
     return query_result
-

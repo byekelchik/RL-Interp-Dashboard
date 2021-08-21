@@ -24,21 +24,28 @@ def make_layout():
                                     {"label": 'Heatmap', "value": 'heatmap'},
                                     {"label": 'Q-Values Plot', "value": 'q-values'},
                                 ],
-                                value='state-delta-table', # initial value in dropdown
+                                # value='state-delta-table', # initial value in dropdown
                                 
                             ),
-                    
-                               # dropdown for choosing the dataset
-                            dbc.Label("Dataset", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                            # dropdown for choosing the dataset
+                            dbc.Label("Year", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
                             dcc.Dropdown(
                                 id="t2_dataset_name",
                                 options=[
                                     {"label": '2018', "value": '2018'},
                                     {"label": 'COVID', "value": 'covid'}
                                 ],
-                                value='2018', # initial value in dropdown
-                           
-                    ),
+                                value='2018', # initial value in dropdown 
+                            ),
+                            dbc.Label("Dataset", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
+                            dcc.Dropdown(
+                                
+                                id="table_name_intra",
+                                options=[
+                                    {"label": 'Default', "value": '10eps_default_training'},
+                                ],
+                                value='10eps_default_training',
+                            ),
                             # slider to change episode in dataset
                             dbc.Label("Select episode:", style={'font-weight': 'bold','color': '#ffd369', 'font': 'San Francisco font'}),
                             dcc.Slider(
@@ -68,15 +75,16 @@ def register_callbacks(app):
             # three input values from the sidebar
             Input(component_id="episode", component_property="value"),
             Input(component_id="t2_dataset_name", component_property="value"),
+            Input(component_id="table_name_intra", component_property="value"),
             Input(component_id="intra_vis", component_property="value"),
 
-        ],
+        ],prevent_initial_call=True
     )
-    def make_graphs(episode, dataset_name, visual):
+    def make_graphs(episode, dataset_name, table_name, visual):
         '''Takes input from the callback and returns the visual for the output'''
         output = []
         i = 0
-        df = sd.get_data(dataset_name, 'Training') # get data from database
+        df = sd.get_data(dataset_name, table_name) # get data from database
         graph_style = {
             'border':'1px solid', 
             'border-radius': 10, 
