@@ -46,7 +46,7 @@ def heatmap(data):
     std_scaler = StandardScaler()
     empty_df[['empty_price_scaled','empty_volume_scaled']] = std_scaler.fit_transform(empty_df[['Price Delta', 'Volume Delta']])
     print(empty_df)
-    empty_df.to_csv(path_or_buf="jupyter/2017/saved_models/2layer_default/empty_df_2layer_default.csv", index=False)
+    empty_df.to_csv(path_or_buf="jupyter/2017/saved_models/99gamma_default/empty_df_99gamma_default.csv", index=False)
     # create heatmap and return it
     fig = go.Figure(go.Heatmap(z=new_df, x=x[1], y=y[1], colorscale=colors.get_colorscale()))
     
@@ -140,7 +140,7 @@ def get_data(dataset_name, table_name):
 
     return query_result
 
-heatmap(get_data('2017', '2layer_default'))
+heatmap(get_data('2017', '99gamma_default'))
 
 
 

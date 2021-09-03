@@ -42,8 +42,13 @@ def make_layout():
                                     
                                     id="table_name_test",
                                     options=[
-                                        {"label": '1 Hidden Layer(2017 Only)', "value": '1layer_default'},
-                                        {"label": '2 Hidden Layers(2017 Only)', "value": '2layer_default'},
+                                        {"label": '1 Hidden Layer (2017 Only)', "value": '1layer_default'},
+                                        {"label": 'Default(2, 32, .95) (2017 Only)', "value": '2layer_default'},
+                                        {"label": '3 Hidden Layers(2017 Only)', "value": '3layer_default'},
+                                        {"label": '.95 Gamma (2017 Only)', "value": '90gamma_default'},
+                                        {"label": '.90 Gamma (2017 Only)', "value": '99gamma_default'},
+                                        {"label": '16 Batch Size(2017 Only)', "value": '16batch_default'},
+                                        {"label": '64 Batch Size(2017 Only)', "value": '64batch_default'},
                                         {"label": 'Default (No Heatmap)', "value": '10eps_default'},
                                     ],
                                     value='1layer_default',
